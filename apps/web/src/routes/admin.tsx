@@ -33,16 +33,13 @@ import { ThemeToggle } from "@/components/core/theme-toggle";
 import { NotificationBell } from "@/components/core/notification-bell";
 import Logo from "@/components/core/logo";
 import { Permissions } from "@rbac";
-import { getUser } from "@/features/user/lib/get-user";
 import { sessionHasPermission } from "@/features/user/lib/session-permissions";
 
 export const Route = createFileRoute("/admin")({
-  beforeLoad: async () => {
-    const session = await getUser();
-    return { session };
-  },
-  loader: async ({ context }) => {
-    if (!context.session) {
+  beforeLoad: async ({ context }) => {
+    const session = context.session;
+
+    if (!session) {
       throw redirect({
         to: "/login",
       });
@@ -50,7 +47,7 @@ export const Route = createFileRoute("/admin")({
 
     if (
       !sessionHasPermission(
-        context.session.permissions,
+        session.permissions,
         Permissions.AdminAccess,
       )
     ) {
