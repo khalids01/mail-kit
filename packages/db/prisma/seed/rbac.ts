@@ -7,7 +7,7 @@ import {
   type RoleSlug,
 } from "@rbac";
 import { syncAllRolePermissionsFromMap } from "../../src/rbac/sync-role-permissions.server";
-import { getRedis, connectRedis } from "@redis/server";
+import { getRedis, connectRedis } from "../../../redis/src/index.server";
 import {
   RBAC_CATALOG_VERSION_KEY,
   rolePermissionsKey,

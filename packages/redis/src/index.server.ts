@@ -1,5 +1,5 @@
 import Redis from "ioredis";
-import { env } from "@env/server";
+import { env } from "../../env/src/env.server";
 
 let redisClient: Redis | null = null;
 

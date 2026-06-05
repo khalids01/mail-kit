@@ -2,23 +2,8 @@
   "name": "@db",
   "type": "module",
   "exports": {
-    "./server": "./src/index.server.ts",
-    "./server/rbac/assignments": "./src/rbac/assignments.server.ts",
-    "./server/rbac/session": "./src/rbac/session.server.ts",
-    "./server/rbac/prisma": "./src/rbac/prisma.server.ts",
-    "./server/rbac/roles": "./src/rbac/roles.server.ts",
-    "./server/rbac/sync-role-permissions": "./src/rbac/sync-role-permissions.server.ts",
-    "./server/rbac/keys": "./src/rbac/keys.ts",
-    "./server/rbac/cache/effective": "./src/rbac/cache/effective.server.ts",
-    "./server/rbac/cache/invalidate": "./src/rbac/cache/invalidate.server.ts",
-    "./server/rbac/cache/role-permissions": "./src/rbac/cache/role-permissions.server.ts",
-    "./server/rbac/resolve/build-effective": "./src/rbac/resolve/build-effective.server.ts",
-    "./server/rbac/resolve/get-session-rbac": "./src/rbac/resolve/get-session-rbac.server.ts",
-    "./server/rbac/resolve/load-role-permissions": "./src/rbac/resolve/load-role-permissions.server.ts",
-    "./server/rbac/resolve/load-snapshot": "./src/rbac/resolve/load-snapshot.server.ts",
-    "./server/rbac/resolve/load-user-context": "./src/rbac/resolve/load-user-context.server.ts",
-    "./server/rbac/resolve/load-user-roles": "./src/rbac/resolve/load-user-roles.server.ts",
-    "./server/seed-rbac": "./src/seed-rbac.server.ts"
+    ".": "./src/server/index.ts",
+    "./*": "./src/*.ts"
   },
   "scripts": {
     "db:reset": "prisma migrate reset",

@@ -1,4 +1,4 @@
-import { getCache, setCache } from "@redis/server";
+import { getCache, setCache } from "../../../../redis/src/index.server";
 import type { Permission } from "@rbac";
 import { rolePermissionsKey } from "../keys";
 

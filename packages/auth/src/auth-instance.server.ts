@@ -1,5 +1,5 @@
 import { customSession } from "better-auth/plugins";
-import { getUserSessionRbac } from "@db/server/rbac/session";
+import { getUserSessionRbac } from "../../db/src/rbac/session.server";
 import { betterAuth } from "better-auth";
 
 import { authOptions } from "./auth-options.server";

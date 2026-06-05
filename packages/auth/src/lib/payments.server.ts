@@ -1,5 +1,5 @@
 import { Polar } from "@polar-sh/sdk";
-import { env, getRequiredPolarEnv } from "@env/server";
+import { env, getRequiredPolarEnv } from "../../../env/src/env.server";
 
 export const polarClient = env.ENABLE_POLAR
   ? (() => {

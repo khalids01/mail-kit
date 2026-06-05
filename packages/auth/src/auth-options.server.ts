@@ -2,11 +2,11 @@ import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth";
 import type { WebhookSubscriptionCreatedPayload } from "@polar-sh/sdk/models/components/webhooksubscriptioncreatedpayload";
 import type { WebhookSubscriptionUpdatedPayload } from "@polar-sh/sdk/models/components/webhooksubscriptionupdatedpayload";
 import { magicLink } from "better-auth/plugins";
-import prisma from "@db/server";
-import { env } from "@env/server";
+import prisma from "../../db/src/client.server";
+import { env } from "../../env/src/env.server";
 import type { BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { sendEmail, magicLinkTemplate } from "@email/server";
+import { sendEmail, magicLinkTemplate } from "../../email/src/index.server";
 
 import { polarClient } from "./lib/payments.server";
 import { polarCustomersForBillingUsers } from "./lib/polar-customers.server";

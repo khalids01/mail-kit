@@ -1,4 +1,4 @@
-import { deleteCache, getCache, setCache } from "@redis/server";
+import { deleteCache, getCache, setCache } from "../../../../redis/src/index.server";
 import type { UserSessionRbacPayload } from "@rbac";
 import {
   EFFECTIVE_PERMISSIONS_TTL_SECONDS,
