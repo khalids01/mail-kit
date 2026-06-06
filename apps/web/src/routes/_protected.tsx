@@ -38,8 +38,7 @@ export const Route = createFileRoute("/_protected")({
   component: ProtectedLayout,
   beforeLoad: async ({ context }) => {
     const session = context.session ?? (await getRootSession());
-    console.log("[protected.beforeLoad] context.session", Boolean(context.session));
-    console.log("[protected.beforeLoad] resolved session", Boolean(session), session?.user?.id);
+    // console.log("session from gcprotected layout : ", session);
 
     if (!session) {
       throw redirect({

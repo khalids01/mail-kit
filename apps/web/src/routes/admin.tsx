@@ -33,40 +33,19 @@ import UserMenu from "@/components/core/user-menu";
 import { ThemeToggle } from "@/components/core/theme-toggle";
 import { NotificationBell } from "@/components/core/notification-bell";
 import Logo from "@/components/core/logo";
-import { Permissions, Roles } from "@rbac";
-import { getRootSession } from "@/features/user/lib/get-root-session";
+import { Permissions } from "@rbac";
 import { sessionHasPermission } from "@/features/user/lib/session-permissions";
-
-function canAccessAdmin(session: {
-  permissions: readonly string[];
-  primaryRoleSlug: string;
-}) {
-  return (
-    sessionHasPermission(session.permissions, Permissions.AdminAccess) ||
-    session.primaryRoleSlug === Roles.PlatformOwner ||
-    session.primaryRoleSlug === Roles.PlatformAdmin
-  );
-}
+import { adminMiddleware } from "@/middleware/admin";
 
 export const Route = createFileRoute("/admin")({
+  server: {
+    middleware: [ adminMiddleware],
+  },
   beforeLoad: async ({ context }) => {
-    const session = context.session ?? (await getRootSession());
-
-    if (!session) {
-      throw redirect({
-        to: "/login",
-      });
-    }
-
-    if (!canAccessAdmin(session)) {
-      throw redirect({
-        to: "/dashboard",
-      });
-    }
-
     return {
-      session,
+      session: context.session,
     };
+ 
   },
   component: AdminLayout,
 });

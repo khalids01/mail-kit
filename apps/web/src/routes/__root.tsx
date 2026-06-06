@@ -36,7 +36,6 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   }),
   beforeLoad: async () => {
     const session = await getRootSession();
-    console.log("[root.beforeLoad] session", Boolean(session), session?.user?.id);
     return { session };
   },
 
