@@ -1,14 +1,14 @@
 import { createMiddleware } from "@tanstack/react-start";
 
-import { authClient } from "@/lib/auth-client";
+import { resolveSession } from "@/features/user/lib/resolve-session";
 
 export const authMiddleware = createMiddleware().server(async ({ next, request }) => {
-  const session = await authClient.getSession({
-    fetchOptions: {
-      headers: request.headers,
-      throw: true,
-    },
-  });
+  const session = await resolveSession(request.headers);
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
   return next({
     context: { session },
   });

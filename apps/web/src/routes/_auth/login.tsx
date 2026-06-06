@@ -7,8 +7,8 @@ import Logo from "@/components/core/logo";
 import { getRootSession } from "@/features/user/lib/get-root-session";
 
 export const Route = createFileRoute("/_auth/login")({
-  beforeLoad: async () => {
-    const session = await getRootSession();
+  beforeLoad: async ({ context }) => {
+    const session = context.session ?? (await getRootSession());
     if (session) {
       throw redirect({ to: "/dashboard" });
     }

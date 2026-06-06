@@ -37,31 +37,30 @@ import {
 } from "@/features/onboarding/lib/get-onboarding-plans";
 
 export const Route = createFileRoute("/onboarding")({
-  beforeLoad: async () => {
+  beforeLoad: async ({ context }) => {
     const [session, plans] = await Promise.all([
-      getRootSession(),
+      Promise.resolve(context.session ?? getRootSession()),
       getOnboardingPlans(),
     ]);
-    return { session, plans };
-  },
-  loader: async ({ context }) => {
-    if (!context.session) {
+
+    if (!session) {
       throw redirect({
         to: "/login",
       });
     }
 
-    const session = context.session;
     const skipsOnboarding =
-      session?.permissions.includes(Permissions.AdminAccess) ||
-      session?.primaryRoleSlug === Roles.PlatformOwner ||
-      session?.primaryRoleSlug === Roles.PlatformAdmin;
+      session.permissions.includes(Permissions.AdminAccess) ||
+      session.primaryRoleSlug === Roles.PlatformOwner ||
+      session.primaryRoleSlug === Roles.PlatformAdmin;
 
-    if (skipsOnboarding || session?.user.onboardingComplete === true) {
+    if (skipsOnboarding || session.user.onboardingComplete === true) {
       throw redirect({
         to: "/dashboard",
       });
     }
+
+    return { plans };
   },
   component: OnboardingPage,
 });

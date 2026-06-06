@@ -33,14 +33,24 @@ import UserMenu from "@/components/core/user-menu";
 import { ThemeToggle } from "@/components/core/theme-toggle";
 import { NotificationBell } from "@/components/core/notification-bell";
 import Logo from "@/components/core/logo";
-import { Permissions } from "@rbac";
+import { Permissions, Roles } from "@rbac";
 import { getRootSession } from "@/features/user/lib/get-root-session";
 import { sessionHasPermission } from "@/features/user/lib/session-permissions";
-import { Route as RootRoute } from "@/routes/__root";
+
+function canAccessAdmin(session: {
+  permissions: readonly string[];
+  primaryRoleSlug: string;
+}) {
+  return (
+    sessionHasPermission(session.permissions, Permissions.AdminAccess) ||
+    session.primaryRoleSlug === Roles.PlatformOwner ||
+    session.primaryRoleSlug === Roles.PlatformAdmin
+  );
+}
 
 export const Route = createFileRoute("/admin")({
-  beforeLoad: async () => {
-    const session = await getRootSession();
+  beforeLoad: async ({ context }) => {
+    const session = context.session ?? (await getRootSession());
 
     if (!session) {
       throw redirect({
@@ -48,18 +58,15 @@ export const Route = createFileRoute("/admin")({
       });
     }
 
-    if (
-      !sessionHasPermission(
-        session.permissions,
-        Permissions.AdminAccess,
-      )
-    ) {
+    if (!canAccessAdmin(session)) {
       throw redirect({
         to: "/dashboard",
       });
     }
 
-    return { session };
+    return {
+      session,
+    };
   },
   component: AdminLayout,
 });
@@ -110,7 +117,7 @@ const navItems = [
 
 function AdminLayout() {
   const location = useLocation();
-  const { session } = RootRoute.useRouteContext();
+  const { session } = Route.useRouteContext();
   const visibleNavItems = navItems.filter((item) => {
     if (!item.permission) {
       return true;

@@ -1,15 +1,12 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 
 import { redirect } from "@tanstack/react-router";
-import { getUser } from "@/features/user/lib/get-user";
+import { getRootSession } from "@/features/user/lib/get-root-session";
 
 export const Route = createFileRoute("/payment/success")({
-  beforeLoad: async () => {
-    const session = await getUser();
-    return { session };
-  },
-  loader: async ({ context }) => {
-    if (!context.session) {
+  beforeLoad: async ({ context }) => {
+    const session = context.session ?? (await getRootSession());
+    if (!session) {
       throw redirect({
         to: "/login",
       });

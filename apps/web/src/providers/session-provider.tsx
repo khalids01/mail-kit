@@ -1,10 +1,9 @@
 import { createContext, useContext } from "react";
-import type { ClientSession } from "@/features/user/lib/client-session";
+import type { ClientSessionResult } from "@/features/user/lib/client-session";
 
-type AppSession = ClientSession;
 
 type SessionContextValue = {
-  session: AppSession;
+  session: ClientSessionResult;
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -13,7 +12,7 @@ export function SessionProvider({
   session,
   children,
 }: {
-  session: AppSession;
+  session: ClientSessionResult;
   children: React.ReactNode;
 }) {
   return (

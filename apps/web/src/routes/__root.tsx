@@ -4,17 +4,20 @@ import {
   Scripts,
   createRootRouteWithContext,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+// import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@/components/ui/sonner";
 import { TanstackQueryProvider } from "@/providers/tanstack-router";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { SessionProvider } from "@/providers/session-provider";
+import type { ClientSessionResult } from "@auth/client";
 import { getRootSession } from "@/features/user/lib/get-root-session";
 import { VisitorTracker } from "@/features/visitors/visitor-tracker";
 
-const isDevelopment = import.meta.env.DEV;
+// const isDevelopment = import.meta.env.DEV;
 
-export interface RouterAppContext {}
+export interface RouterAppContext {
+  session: ClientSessionResult;
+}
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
@@ -33,6 +36,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   }),
   beforeLoad: async () => {
     const session = await getRootSession();
+    console.log("[root.beforeLoad] session", Boolean(session), session?.user?.id);
     return { session };
   },
 
@@ -56,7 +60,7 @@ function RootDocument() {
           </SessionProvider>
           <VisitorTracker />
           <Toaster richColors position="top-center"/>
-          {isDevelopment && <TanStackRouterDevtools position="bottom-left" />}
+          {/* {isDevelopment && <TanStackRouterDevtools position="bottom-left" />} */}
         </ThemeProvider>
         <Scripts />
       </body>

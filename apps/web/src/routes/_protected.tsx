@@ -22,7 +22,6 @@ import {
   LayoutDashboard,
   User as UserIcon,
   ChevronRight,
-  Component,
 } from "lucide-react";
 import UserMenu from "@/components/core/user-menu";
 import { ThemeToggle } from "@/components/core/theme-toggle";
@@ -31,23 +30,29 @@ import Logo from "@/components/core/logo";
 
 import { Permissions } from "@rbac";
 import { FeedbackButton } from "@/components/core/feedback-button";
-import { getUser } from "@/features/user/lib/get-user";
+import { getRootSession } from "@/features/user/lib/get-root-session";
 import { getPayment } from "@/features/payment/lib/get-payment";
 import { useSession } from "@/providers/session-provider";
 
 export const Route = createFileRoute("/_protected")({
   component: ProtectedLayout,
-  beforeLoad: async () => {
-    const session = await getUser();
-    const customerState = await getPayment();
-    return { session, customerState };
-  },
-  loader: async ({ context }) => {
-    if (!context.session) {
+  beforeLoad: async ({ context }) => {
+    const session = context.session ?? (await getRootSession());
+    console.log("[protected.beforeLoad] context.session", Boolean(context.session));
+    console.log("[protected.beforeLoad] resolved session", Boolean(session), session?.user?.id);
+
+    if (!session) {
       throw redirect({
         to: "/login",
       });
     }
+
+    const customerState = await getPayment();
+
+    return {
+      session,
+      customerState,
+    };
   },
 });
 
