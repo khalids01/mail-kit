@@ -28,18 +28,27 @@ import {
   Webhook,
   Shield,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import UserMenu from "@/components/core/user-menu";
 import { ThemeToggle } from "@/components/core/theme-toggle";
 import { NotificationBell } from "@/components/core/notification-bell";
 import Logo from "@/components/core/logo";
-import { Permissions } from "@rbac";
-import { sessionHasPermission } from "@/features/user/lib/session-permissions";
+import {
+  canShowActivityNav,
+  canShowFeedbackNav,
+  canShowRateLimitsNav,
+  canShowRolesNav,
+  canShowUsersNav,
+  canShowVisitorsNav,
+  canShowWebhooksNav,
+} from "@/features/admin/lib/admin-access";
 import { adminMiddleware } from "@/middleware/admin";
 import { useSession } from "@/providers/session-provider";
+import type { ClientSession } from "@auth/client";
 
 export const Route = createFileRoute("/admin")({
   server: {
-    middleware: [ adminMiddleware],
+    middleware: [adminMiddleware],
   },
   beforeLoad: async ({ context, cause }) => {
     if (cause === "stay") {
@@ -49,65 +58,74 @@ export const Route = createFileRoute("/admin")({
     return {
       session: context.session,
     };
- 
   },
   component: AdminLayout,
 });
 
-const navItems = [
-  {
-    title: "Overview",
-    icon: LayoutDashboard,
-    url: "/admin/overview",
-  },
-  {
-    title: "Users",
-    icon: Users,
-    url: "/admin/users",
-  },
-  {
-    title: "Roles",
-    icon: Shield,
-    url: "/admin/roles",
-    permission: Permissions.AdminRolesList,
-  },
-  {
-    title: "Feedback",
-    icon: MessageSquare,
-    url: "/admin/feedback",
-  },
-  {
-    title: "Rate Limits",
-    icon: ShieldAlert,
-    url: "/admin/rate-limits",
-  },
-  {
-    title: "Visitors",
-    icon: Activity,
-    url: "/admin/visitors",
-  },
-  {
-    title: "Activity",
-    icon: History,
-    url: "/admin/activity",
-  },
-  {
-    title: "Webhooks",
-    icon: Webhook,
-    url: "/admin/webhooks",
-  },
-];
+type AdminNavItem = {
+  title: string;
+  icon: LucideIcon;
+  url: string;
+  show: boolean;
+};
+
+function getAdminNavItems(session: ClientSession | null | undefined): AdminNavItem[] {
+  return [
+    {
+      title: "Overview",
+      icon: LayoutDashboard,
+      url: "/admin/overview",
+      show: true,
+    },
+    {
+      title: "Users",
+      icon: Users,
+      url: "/admin/users",
+      show: canShowUsersNav(session),
+    },
+    {
+      title: "Roles",
+      icon: Shield,
+      url: "/admin/roles",
+      show: canShowRolesNav(session),
+    },
+    {
+      title: "Feedback",
+      icon: MessageSquare,
+      url: "/admin/feedback",
+      show: canShowFeedbackNav(session),
+    },
+    {
+      title: "Rate Limits",
+      icon: ShieldAlert,
+      url: "/admin/rate-limits",
+      show: canShowRateLimitsNav(session),
+    },
+    {
+      title: "Visitors",
+      icon: Activity,
+      url: "/admin/visitors",
+      show: canShowVisitorsNav(session),
+    },
+    {
+      title: "Activity",
+      icon: History,
+      url: "/admin/activity",
+      show: canShowActivityNav(session),
+    },
+    {
+      title: "Webhooks",
+      icon: Webhook,
+      url: "/admin/webhooks",
+      show: canShowWebhooksNav(session),
+    },
+  ];
+}
 
 function AdminLayout() {
   const location = useLocation();
   const { session } = useSession();
-  const visibleNavItems = navItems.filter((item) => {
-    if (!item.permission) {
-      return true;
-    }
-
-    return sessionHasPermission(session?.permissions ?? [], item.permission);
-  });
+  const visibleNavItems = getAdminNavItems(session).filter((item) => item.show);
 
   return (
     <SidebarProvider>

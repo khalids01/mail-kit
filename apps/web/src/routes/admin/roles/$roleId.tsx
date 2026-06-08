@@ -1,7 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { Permissions } from "@rbac";
+import { canAccessAdminRolesRead } from "@/features/admin/lib/admin-access";
 import { getRootSession } from "@/features/user/lib/get-root-session";
-import { sessionHasPermission } from "@/features/user/lib/session-permissions";
 import { RoleDetailPage } from "@/features/admin/roles/role-detail-page";
 import { adminMiddleware } from "@/middleware/admin";
 
@@ -12,12 +11,7 @@ export const Route = createFileRoute("/admin/roles/$roleId")({
   beforeLoad: async () => {
     const session = await getRootSession();
 
-    if (
-      !sessionHasPermission(
-        session?.permissions ?? [],
-        Permissions.AdminRolesRead,
-      )
-    ) {
+    if (!canAccessAdminRolesRead(session)) {
       throw redirect({ to: "/admin/overview" });
     }
   },

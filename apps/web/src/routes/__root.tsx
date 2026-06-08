@@ -11,7 +11,6 @@ import { getRootSession } from "@/features/user/lib/get-root-session";
 import { VisitorTracker } from "@/features/visitors/visitor-tracker";
 import type { ClientSessionResult } from "@auth/client";
 
-// const isDevelopment = import.meta.env.DEV;
 
 export interface RouterAppContext {
   session?: ClientSessionResult;
@@ -45,7 +44,6 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
 
-  const { session } = Route.useLoaderData();
 
   return (
     <html lang="en" suppressHydrationWarning>

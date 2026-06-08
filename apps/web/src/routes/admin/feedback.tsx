@@ -94,7 +94,7 @@ function AdminFeedbackPage() {
                   <Avatar>
                     <AvatarImage src={item.user.image ?? undefined} />
                     <AvatarFallback>
-                      {item.user.name.substring(0, 2).toUpperCase()}
+                      {item.user.name?.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>

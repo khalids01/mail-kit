@@ -9,10 +9,10 @@ function canAccessAdmin(session: {
   permissions: readonly string[];
   primaryRoleSlug: string;
 }) {
+ 
   return (
     sessionHasPermission(session.permissions, Permissions.AdminAccess) ||
-    session.primaryRoleSlug === Roles.PlatformOwner ||
-    session.primaryRoleSlug === Roles.PlatformAdmin
+    session.primaryRoleSlug === Roles.PlatformOwner 
   );
 }
 

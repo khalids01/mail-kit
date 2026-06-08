@@ -1,4 +1,5 @@
 import prisma from "../src/client.server";
+import { invalidateUser } from "../src/rbac/cache/invalidate.server";
 import { assignUserRole } from "../src/rbac/assignments.server";
 import { Roles } from "@rbac";
 
@@ -29,13 +30,17 @@ async function main() {
   const currentRole = user.rbacRoles[0]?.role.slug ?? Roles.PlatformUser;
 
   if (currentRole === Roles.PlatformOwner) {
-    console.log(`${user.email} is already an owner.`);
+    await invalidateUser(user.id);
+    console.log(`${user.email} is already an owner. Session cache refreshed.`);
+    console.log("Log out and sign in again to refresh your session.");
     return;
   }
 
   await assignUserRole(user.id, Roles.PlatformOwner, {
     allowOwnerAssignment: true,
   });
+
+  await invalidateUser(user.id);
 
   console.log(`Assigned platform.owner to ${user.name} (${user.email})`);
   console.log("Log out and sign in again to refresh your session.");
