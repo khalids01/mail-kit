@@ -85,6 +85,7 @@ export function UserActions({ user }: { user: any }) {
   });
 
   const canChangeRole = user.role.slug !== Roles.PlatformOwner;
+  const canUseDestructiveActions = user.role.slug !== Roles.PlatformOwner;
 
   return (
     <>
@@ -116,11 +117,15 @@ export function UserActions({ user }: { user: any }) {
               </DropdownMenuItem>
             ) : null}
           </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-destructive">
-            <Ban className="mr-2 h-4 w-4" />
-            {user.banned ? "Unban User" : "Ban User"}
-          </DropdownMenuItem>
+          {canUseDestructiveActions ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">
+                <Ban className="mr-2 h-4 w-4" />
+                {user.banned ? "Unban User" : "Ban User"}
+              </DropdownMenuItem>
+            </>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
 

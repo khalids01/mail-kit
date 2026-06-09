@@ -82,6 +82,14 @@ export function assertActorCanChangePrivilegedAccounts(args: {
   }
 }
 
+export function assertOwnerAccountCannotBeDisabled(args: {
+  targetRoleSlug: RoleSlug | string | null | undefined;
+}) {
+  if (isOwnerRole(args.targetRoleSlug)) {
+    policyError("Owner accounts cannot be banned, archived, or deleted");
+  }
+}
+
 export function assertNotSelfTarget(args: {
   actorId?: string;
   targetId: string;

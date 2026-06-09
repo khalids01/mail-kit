@@ -539,14 +539,14 @@ describe("UsersService", () => {
     expect(userDeleteMock).not.toHaveBeenCalled();
   });
 
-  it("prevents disabling or deleting the last active owner", async () => {
+  it("prevents disabling or deleting owner accounts", async () => {
     userFindUniqueMock.mockResolvedValue({
       id: "owner-2",
       rbacRoles: [
         { role: { slug: Roles.PlatformOwner, name: "Owner" } },
       ],
     });
-    countActivePlatformOwnersMock.mockResolvedValue(1);
+    countActivePlatformOwnersMock.mockResolvedValue(2);
 
     const { usersService } = await import(
       "../src/modules/admin/users/users.service"
@@ -554,13 +554,13 @@ describe("UsersService", () => {
 
     await expect(
       usersService.banUser("owner-2", "reason", ownerActor),
-    ).rejects.toThrow("Cannot disable or delete the last active owner");
+    ).rejects.toThrow("Owner accounts cannot be banned, archived, or deleted");
     await expect(
       usersService.archiveUser("owner-2", ownerActor),
-    ).rejects.toThrow("Cannot disable or delete the last active owner");
+    ).rejects.toThrow("Owner accounts cannot be banned, archived, or deleted");
     await expect(
       usersService.deleteUserPermanent("owner-2", ownerActor),
-    ).rejects.toThrow("Cannot disable or delete the last active owner");
+    ).rejects.toThrow("Owner accounts cannot be banned, archived, or deleted");
     expect(userUpdateMock).not.toHaveBeenCalled();
     expect(userDeleteMock).not.toHaveBeenCalled();
   });

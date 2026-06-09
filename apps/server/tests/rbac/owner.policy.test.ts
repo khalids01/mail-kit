@@ -5,6 +5,7 @@ import {
   assertActorCanChangePrivilegedAccounts,
   assertActorCanGrantAdminRole,
   assertNotSelfTarget,
+  assertOwnerAccountCannotBeDisabled,
   assertOwnerRoleIsImmutable,
   filterOwnerUsers,
 } from "../../src/rbac/policies/owner.policy";
@@ -93,6 +94,26 @@ describe("owner policy", () => {
       assertOwnerRoleIsImmutable({
         targetRoleSlug: Roles.PlatformUser,
         nextRoleSlug: Roles.PlatformAdmin,
+      }),
+    ).not.toThrow();
+  });
+
+  it("blocks disabling owner accounts", () => {
+    expect(() =>
+      assertOwnerAccountCannotBeDisabled({
+        targetRoleSlug: Roles.PlatformOwner,
+      }),
+    ).toThrow("Owner accounts cannot be banned, archived, or deleted");
+
+    expect(() =>
+      assertOwnerAccountCannotBeDisabled({
+        targetRoleSlug: Roles.PlatformAdmin,
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      assertOwnerAccountCannotBeDisabled({
+        targetRoleSlug: Roles.PlatformUser,
       }),
     ).not.toThrow();
   });

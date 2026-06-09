@@ -1,8 +1,5 @@
 import prisma from "@db/server";
-import {
-  countActivePlatformOwners,
-  getRoleIdBySlug,
-} from "@db/server/rbac/assignments";
+import { getRoleIdBySlug } from "@db/server/rbac/assignments";
 import { isAssignableRoleSlug } from "@db/server/rbac/roles";
 import {
   formatRoleLabel,
@@ -20,6 +17,7 @@ import {
   assertActorCanGrantAdminRole,
   assertNotAssignableOwnerRole,
   assertNotSelfTarget,
+  assertOwnerAccountCannotBeDisabled,
   assertOwnerRoleIsImmutable,
   filterOwnerUsers,
   isOwnerRole,
@@ -123,18 +121,6 @@ async function getAdminTargetUser(id: string) {
   return { id: user.id, roleSlug: roleSlug as RoleSlug };
 }
 
-async function assertNotLastOwner(targetRoleSlug: RoleSlug) {
-  if (!isOwnerRole(targetRoleSlug)) {
-    return;
-  }
-
-  const ownerCount = await countActivePlatformOwners();
-
-  if (ownerCount <= 1) {
-    policyError("Cannot disable or delete the last active owner");
-  }
-}
-
 async function assertCanUpdateUser(args: {
   actor: AdminActor;
   targetId: string;
@@ -190,7 +176,9 @@ async function assertCanUseDestructiveAction(args: {
     targetRoleSlug: target.roleSlug,
   });
 
-  await assertNotLastOwner(target.roleSlug);
+  assertOwnerAccountCannotBeDisabled({
+    targetRoleSlug: target.roleSlug,
+  });
 }
 
 export class UsersService {
