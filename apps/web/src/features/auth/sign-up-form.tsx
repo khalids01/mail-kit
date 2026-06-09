@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -8,11 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function SignUpForm({
-  onSwitchToSignIn,
-}: {
-  onSwitchToSignIn: () => void;
-}) {
+export default function SignUpForm() {
   const magicLinkForm = useForm({
     defaultValues: {
       email: "",
@@ -60,6 +57,7 @@ export default function SignUpForm({
                 <Input
                   id="magic-signup-name"
                   name={field.name}
+                  placeholder="Your name"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -83,6 +81,7 @@ export default function SignUpForm({
                   id="magic-signup-email"
                   name={field.name}
                   type="email"
+                  placeholder="you@example.com"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -112,11 +111,11 @@ export default function SignUpForm({
 
       <div className="mt-4 text-center">
         <Button
+          asChild
           variant="link"
-          onClick={onSwitchToSignIn}
           className="text-indigo-600 hover:text-indigo-800"
         >
-          Already have an account? Sign In
+          <Link to="/login">Already have an account? Sign In</Link>
         </Button>
       </div>
     </div>

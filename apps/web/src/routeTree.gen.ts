@@ -27,6 +27,7 @@ import { Route as AdminFeedbackRouteImport } from './routes/admin/feedback'
 import { Route as AdminActivityRouteImport } from './routes/admin/activity'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
 import { Route as ProtectedAccountRouteImport } from './routes/_protected/account'
+import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin/roles/$roleId'
 
@@ -119,6 +120,11 @@ const ProtectedAccountRoute = ProtectedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/_auth/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/_auth/login',
   path: '/login',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/setup': typeof SetupRoute
   '/login': typeof AuthLoginRoute
+  '/signup': typeof AuthSignupRoute
   '/account': typeof ProtectedAccountRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/admin/activity': typeof AdminActivityRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/setup': typeof SetupRoute
   '/login': typeof AuthLoginRoute
+  '/signup': typeof AuthSignupRoute
   '/account': typeof ProtectedAccountRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/admin/activity': typeof AdminActivityRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/setup': typeof SetupRoute
   '/_auth/login': typeof AuthLoginRoute
+  '/_auth/signup': typeof AuthSignupRoute
   '/_protected/account': typeof ProtectedAccountRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/admin/activity': typeof AdminActivityRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/setup'
     | '/login'
+    | '/signup'
     | '/account'
     | '/dashboard'
     | '/admin/activity'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/setup'
     | '/login'
+    | '/signup'
     | '/account'
     | '/dashboard'
     | '/admin/activity'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/setup'
     | '/_auth/login'
+    | '/_auth/signup'
     | '/_protected/account'
     | '/_protected/dashboard'
     | '/admin/activity'
@@ -267,6 +279,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   SetupRoute: typeof SetupRoute
   AuthLoginRoute: typeof AuthLoginRoute
+  AuthSignupRoute: typeof AuthSignupRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
   PublicIndexRoute: typeof PublicIndexRoute
 }
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedAccountRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_auth/signup': {
+      id: '/_auth/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth/login': {
       id: '/_auth/login'
       path: '/login'
@@ -475,6 +495,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   SetupRoute: SetupRoute,
   AuthLoginRoute: AuthLoginRoute,
+  AuthSignupRoute: AuthSignupRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
   PublicIndexRoute: PublicIndexRoute,
 }
