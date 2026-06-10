@@ -152,6 +152,8 @@ export class RolesService {
     assertCanManageTargetRole(actor, roleId, role);
 
     const updated = await updateCustomRoleMetadata(roleId, data);
+    const userIds = await getUserIdsForRole(roleId);
+    await invalidateRole(roleId, userIds);
 
     await activityService.record({
       type: "role.updated",

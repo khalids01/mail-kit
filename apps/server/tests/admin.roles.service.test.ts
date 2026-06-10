@@ -6,7 +6,7 @@ import {
 } from "@rbac";
 import { mockRedisModule } from "./rbac/helpers/mock-redis-module";
 
-mockRedisModule();
+const { store } = mockRedisModule();
 
 const listRolesMock = mock(async () => []);
 const listAssignableRolesMock = mock(async () => []);
@@ -74,6 +74,8 @@ describe("roles.service", () => {
   });
 
   beforeEach(() => {
+    store.values.clear();
+    store.ttl.clear();
     listRolesMock.mockClear();
     getRoleByIdMock.mockClear();
     replaceRolePermissionsMock.mockClear();
@@ -165,6 +167,50 @@ describe("roles.service", () => {
 
     expect(resetRolePermissionsFromMapMock).toHaveBeenCalledWith(Roles.PlatformAdmin);
     expect(activityRecordMock).toHaveBeenCalled();
+  });
+
+  it("invalidates assigned users when role metadata changes", async () => {
+    getRoleByIdMock.mockResolvedValueOnce({
+      id: "role-custom",
+      slug: "custom.support",
+      name: "Support",
+      isProtected: false,
+      isSystem: false,
+      permissions: [Permissions.FeedbackSubmit],
+      _count: { permissions: 1, userAssignments: 2 },
+    });
+    getUserIdsForRoleMock.mockResolvedValueOnce(["user-1", "user-2"]);
+
+    const { rolesService } = await import("../src/modules/admin/roles/roles.service");
+    const { setCachedUserSessionRbac, getCachedUserSessionRbac } = await import(
+      "../src/rbac/cache/effective"
+    );
+
+    const cached = {
+      permissions: [Permissions.FeedbackSubmit],
+      roles: [{ id: "role-custom", slug: "custom.support", name: "Support" }],
+      primaryRoleSlug: "custom.support",
+      primaryRoleId: "role-custom",
+      catalogVersion: 1,
+      computedAt: new Date().toISOString(),
+    } as never;
+
+    await setCachedUserSessionRbac("user-1", cached);
+    await setCachedUserSessionRbac("user-2", cached);
+    await setCachedUserSessionRbac("user-3", cached);
+
+    await rolesService.updateRoleMetadata(
+      "role-custom",
+      { name: "Support Team" },
+      ownerActor,
+    );
+
+    expect(updateCustomRoleMetadataMock).toHaveBeenCalledWith("role-custom", {
+      name: "Support Team",
+    });
+    expect(await getCachedUserSessionRbac("user-1")).toBeNull();
+    expect(await getCachedUserSessionRbac("user-2")).toBeNull();
+    expect(await getCachedUserSessionRbac("user-3")).not.toBeNull();
   });
 
   it("rejects permission updates for protected roles", async () => {

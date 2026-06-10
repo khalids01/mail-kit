@@ -1,5 +1,6 @@
 import prisma from "../client.server";
 import { Roles, type RoleSlug } from "@rbac";
+import { invalidateUser } from "./cache/invalidate.server";
 
 export async function getRoleIdBySlug(slug: string): Promise<string> {
   const role = await prisma.rbacRole.findUnique({
@@ -40,6 +41,8 @@ export async function assignUserRole(
       },
     }),
   ]);
+
+  await invalidateUser(userId);
 }
 
 export async function getPrimaryRoleSlug(userId: string): Promise<RoleSlug> {

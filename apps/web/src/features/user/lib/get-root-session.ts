@@ -11,7 +11,10 @@ type BackendSessionContext =
       permissions: [];
       roles: [];
       primaryRoleSlug: null;
+      primaryRoleId: null;
     };
+
+const sessionRequests = new Map<string, Promise<ClientSessionResult>>();
 
 function normalizeSessionContext(
   session: BackendSessionContext,
@@ -21,11 +24,18 @@ function normalizeSessionContext(
 
 export const getRootSession = createServerFn({ method: "GET" }).handler(
   async (): Promise<ClientSessionResult> => {
-    const headers = getRequestHeaders();
+    return getRootSessionForHeaders(getRequestHeaders());
+  },
+);
+
+export async function getRootSessionForHeaders(
+  headers: Headers,
+): Promise<ClientSessionResult> {
     const requestHeaders = new Headers();
 
     const cookie = headers.get("cookie");
     const authorization = headers.get("authorization");
+    const cacheKey = `${cookie ?? ""}\n${authorization ?? ""}`;
 
     if (cookie) {
       requestHeaders.set("cookie", cookie);
@@ -35,20 +45,35 @@ export const getRootSession = createServerFn({ method: "GET" }).handler(
       requestHeaders.set("authorization", authorization);
     }
 
-    try {
-      const response = await fetch(`${env.VITE_SERVER_URL}/session/context`, {
-        headers: requestHeaders,
-      });
+    const existing = sessionRequests.get(cacheKey);
+    if (existing) {
+      return existing;
+    }
 
-      if (!response.ok) {
-        return null;
-      }
+    const request = fetchRootSession(requestHeaders).finally(() => {
+      sessionRequests.delete(cacheKey);
+    });
 
-      const session = (await response.json()) as BackendSessionContext;
-      return normalizeSessionContext(session);
-    } catch (error) {
-      console.error("[getRootSession] session context request failed", error);
+    sessionRequests.set(cacheKey, request);
+    return request;
+}
+
+async function fetchRootSession(
+  requestHeaders: Headers,
+): Promise<ClientSessionResult> {
+  try {
+    const response = await fetch(`${env.VITE_SERVER_URL}/session/context`, {
+      headers: requestHeaders,
+    });
+
+    if (!response.ok) {
       return null;
     }
-  },
-);
+
+    const session = (await response.json()) as BackendSessionContext;
+    return normalizeSessionContext(session);
+  } catch (error) {
+    console.error("[getRootSession] session context request failed", error);
+    return null;
+  }
+}

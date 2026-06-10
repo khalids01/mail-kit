@@ -5,7 +5,6 @@ import {
 } from "../cache/effective.server";
 import {
   getCatalogVersion,
-  isEffectiveCacheStale,
   isUserSessionRbacPayloadComplete,
 } from "../cache/invalidate.server";
 import { computeEffectivePermissionArrayFromSnapshot } from "./build-effective.server";
@@ -16,10 +15,7 @@ export async function getUserSessionRbac(
 ): Promise<UserSessionRbacPayload> {
   const cached = await getCachedUserSessionRbac(userId);
 
-  if (
-    isUserSessionRbacPayloadComplete(cached) &&
-    !(await isEffectiveCacheStale(cached))
-  ) {
+  if (isUserSessionRbacPayloadComplete(cached)) {
     return cached;
   }
 

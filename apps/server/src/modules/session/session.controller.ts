@@ -9,7 +9,9 @@ export const sessionController = new Elysia({
   .use(authGuard)
   .get(
     "/context",
-    async ({ session, userId }) => {
+    async ({ session, userId, set }) => {
+      set.headers["cache-control"] = "private, no-store";
+
       if (!session || !userId) {
         return { user: null, permissions: [], roles: [], primaryRoleSlug: null, primaryRoleId: null };
       }

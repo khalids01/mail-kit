@@ -8,8 +8,8 @@ export const Route = createFileRoute("/admin/roles/$roleId")({
   server: {
     middleware: [adminMiddleware],
   },
-  beforeLoad: async () => {
-    const session = await getRootSession();
+  beforeLoad: async ({ context }) => {
+    const session = context.session ?? (await getRootSession());
 
     if (!canAccessAdminRolesRead(session)) {
       throw redirect({ to: "/admin/overview" });

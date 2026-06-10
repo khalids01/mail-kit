@@ -61,7 +61,7 @@ describe("rbac resolve", () => {
     const callsAfterFirst = getCacheCalls;
 
     await getEffectivePermissions("owner");
-    expect(getCacheCalls).toBeGreaterThan(callsAfterFirst);
+    expect(getCacheCalls - callsAfterFirst).toBe(1);
 
     const second = await getEffectivePermissions("owner");
     expect(second.has(Permissions.AdminUsersGrantAdmin)).toBe(true);
