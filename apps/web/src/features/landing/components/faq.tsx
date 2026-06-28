@@ -7,56 +7,57 @@ import {
 
 const faqs = [
   {
-    question: "What's included in the TS Starter?",
+    question: "Is Mail Kit a complete mail server?",
     answer:
-      "It includes everything you need to launch a SaaS: Authentication (Better Auth), Database (Prisma), UI Components (Shadcn/UI), Styling (Tailwind 4), and much more.",
+      "Not in the first version. Mail Kit is the TypeScript SaaS layer for domains, API keys, sending workflows, inbox UI, logs, webhooks, and admin controls. Real SMTP/IMAP handling should use proven mail infrastructure.",
   },
   {
-    question: "Is it easy to customize the design?",
+    question: "How do I test email locally?",
     answer:
-      "Yes! We use Tailwind CSS 4 and Shadcn/UI, making it extremely easy to customize every aspect of the design to match your brand.",
+      "Use Mailpit. The local flow is Mail Kit to Nodemailer to Mailpit SMTP on port 1025, then inspect messages in the Mailpit web UI on port 8025.",
   },
   {
-    question: "Can I use this for commercial projects?",
+    question: "What DNS records are required?",
     answer:
-      "Absolutely. The starter is designed precisely for that. You can use it to build any SaaS, landing page, or web application you want.",
+      "The domain setup flow should guide users through MX for receiving, SPF for sender policy, DKIM for signing, DMARC for domain policy, and an optional tracking CNAME later.",
   },
   {
-    question: "Do you provide regular updates?",
+    question: "Can this be a public email provider?",
     answer:
-      "We keep all dependencies up to date and regularly add new features and components based on community feedback.",
+      "Eventually, but not first. Deliverability, spam prevention, abuse controls, port 25, bounce handling, and IP reputation are hard problems, so the MVP should stay private and self-hosted.",
   },
   {
-    question: "What is the tech stack?",
+    question: "What comes after branding?",
     answer:
-      "The stack includes Tanstack Start, React 19, Prisma, Better Auth, Tailwind 4, and Vite.",
+      "The next product work is projects, domains, DNS verification, API keys, POST /emails/send, Mailpit-backed sending, and an email logs page.",
   },
 ];
 
 export const FAQ = () => {
   return (
-    <section id="faq" className="py-24">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">
-            Frequently Asked Questions
+    <section id="faq" className="border-b py-24">
+      <div className="container mx-auto max-w-4xl px-4">
+        <div className="mb-14 text-center">
+          <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-5xl">
+            Questions before the first send
           </h2>
-          <p className="text-muted-foreground text-lg">
-            Find answers to common questions about the TS Starter template.
+          <p className="text-lg text-muted-foreground">
+            The MVP keeps mail transport realistic and lets the TypeScript app
+            focus on the product layer.
           </p>
         </div>
 
-        <Accordion className="w-full space-y-4">
+        <Accordion className="w-full space-y-3">
           {faqs.map((faq, index) => (
             <AccordionItem
-              key={index}
+              key={faq.question}
               value={`item-${index}`}
-              className="px-6 border border-border rounded-xl"
+              className="rounded-lg border px-5"
             >
-              <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
+              <AccordionTrigger className="text-left font-semibold hover:no-underline">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground leading-relaxed">
+              <AccordionContent className="leading-7 text-muted-foreground">
                 {faq.answer}
               </AccordionContent>
             </AccordionItem>

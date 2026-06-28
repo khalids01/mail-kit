@@ -360,7 +360,7 @@ describe("VisitorsService.trackVisit", () => {
 
     const setCookieMock = mock((_value: string) => undefined);
 
-    const request = new Request("http://localhost:3000/analytics/visitors/track", {
+    const request = new Request("http://localhost:5005/analytics/visitors/track", {
       headers: {
         cookie: "visitor_id=visitor-abc-1234567890",
         "user-agent": "Mozilla/5.0",
@@ -405,7 +405,7 @@ describe("VisitorsService.trackVisit", () => {
 
     const setCookieMock = mock((_value: string) => undefined);
 
-    const request = new Request("http://localhost:3000/analytics/visitors/track", {
+    const request = new Request("http://localhost:5005/analytics/visitors/track", {
       headers: {
         cookie: "visitor_id=visitor-bot-1234567890",
         "user-agent": "Googlebot/2.1",
@@ -442,7 +442,7 @@ describe("VisitorsService.trackVisit", () => {
     for (const cookie of cookies) {
       await visitorsService.trackVisit({
         request: new Request(
-          "http://localhost:3000/analytics/visitors/track",
+          "http://localhost:5005/analytics/visitors/track",
           {
             headers: {
               cookie,
@@ -486,7 +486,7 @@ describe("VisitorsService.trackVisit", () => {
     ]) {
       await visitorsService.trackVisit({
         request: new Request(
-          "http://localhost:3000/analytics/visitors/track",
+          "http://localhost:5005/analytics/visitors/track",
           {
             headers: {
               cookie,
@@ -514,7 +514,7 @@ describe("VisitorsService.trackVisit", () => {
     );
 
     const result = await visitorsService.trackVisit({
-      request: new Request("http://localhost:3000/analytics/visitors/track", {
+      request: new Request("http://localhost:5005/analytics/visitors/track", {
         headers: {
           cookie: "visitor_id=visitor-admin-1234567890",
           "user-agent": "Mozilla/5.0",

@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: ts-starter-postgres
+    container_name: mail-kit-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: root
@@ -19,7 +19,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: ts-starter-redis
+    container_name: mail-kit-redis
     restart: unless-stopped
     ports:
       - "6379:6379"

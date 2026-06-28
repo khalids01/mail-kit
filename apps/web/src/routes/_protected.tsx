@@ -26,7 +26,7 @@ import {
 import UserMenu from "@/components/core/user-menu";
 import { ThemeToggle } from "@/components/core/theme-toggle";
 import { NotificationBell } from "@/components/core/notification-bell";
-import Logo from "@/components/core/logo";
+import BrandMark from "@/components/core/logo";
 
 import { Permissions } from "@rbac";
 import { FeedbackButton } from "@/components/core/feedback-button";
@@ -85,8 +85,8 @@ function ProtectedLayout() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   size="lg"
-                  tooltip="Logo"
-                  render={(buttonProps) => <Logo {...buttonProps} />}
+                  tooltip="Mail Kit"
+                  render={(buttonProps) => <BrandMark {...buttonProps} />}
                 />
               </SidebarMenuItem>
             </SidebarMenu>

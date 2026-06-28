@@ -1,36 +1,46 @@
-# ts-starter
+# Mail Kit
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Elysia, and more.
+Mail Kit is a self-hostable email platform for transactional sending and simple inbound inboxes. It builds on a TypeScript SaaS foundation and turns it into the app layer around proven mail infrastructure.
 
-## Features
+## Product Direction
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Start** - SSR framework with TanStack Router
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **shadcn/ui** - Reusable UI components
-- **Elysia** - Type-safe, high-performance framework
-- **Bun** - Runtime environment
-- **Prisma** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Better-Auth
-- **Turborepo** - Optimized monorepo build system
+Mail Kit is meant to feel like a clean developer email provider:
 
-## Getting Started
+- Send transactional email through an API and SMTP.
+- Connect domains with DNS verification.
+- Receive inbound mail into a dashboard inbox.
+- View delivery logs and message history.
+- Manage API keys, webhooks, projects, and admin controls.
+- Run privately on your own VPS before becoming a public provider.
 
-First, install the dependencies:
+The TypeScript app is not intended to be the raw mail server in the first version. Production mail delivery and receiving should use Mailcow, Mailu, Docker Mailserver, Postfix/Dovecot, or another proven mail stack. Mail Kit manages the SaaS layer around that infrastructure.
+
+## Stack
+
+- TypeScript and Bun
+- React, TanStack Start, and TanStack Router
+- Elysia API server
+- Prisma and PostgreSQL
+- Better Auth
+- Redis for cache, rate limits, visitor tracking, and session-related data
+- Tailwind CSS and shadcn/ui
+- Nodemailer for SMTP sending
+
+## Local Development
+
+Install dependencies:
 
 ```bash
 bun install
 ```
 
-## Database Setup
+Start PostgreSQL and Redis:
 
-This project uses PostgreSQL with Prisma.
+```bash
+docker compose up -d
+```
 
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
-
-3. Generate the Prisma client, run migrations, and seed RBAC:
+Generate Prisma client, run migrations, and seed RBAC:
 
 ```bash
 bun run db:generate
@@ -38,89 +48,99 @@ bun run db:migrate
 bun run db:seed
 ```
 
-Then, run the development server:
+For local email testing, run Mailpit separately:
+
+```bash
+docker run --name mail-kit-mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit
+```
+
+Local SMTP settings:
+
+```bash
+SMTP_HOST=localhost
+SMTP_PORT=1025
+SMTP_SECURE=false
+```
+
+Start the apps:
 
 ```bash
 bun run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:5006](http://localhost:5006) for the web app.
+The API runs at [http://localhost:5005](http://localhost:5005).
+Mailpit is available at [http://localhost:8025](http://localhost:8025).
 
-## RBAC (Role-Based Access Control)
+## Environment
 
-Permissions are defined in [`packages/rbac`](packages/rbac) (`permissions.ts`, `roles.ts`, `maps.ts`). The maps file is the **seed default** only; runtime authorization reads from Postgres and Redis.
+Server defaults:
 
 ```bash
-# Apply migrations, then seed roles and permissions
+BETTER_AUTH_URL=http://localhost:5005
+CORS_ORIGIN=http://localhost:5006
+REDIS_URL=redis://localhost:6379
+REDIS_KEY_PREFIX=mail-kit:
+PORT=5005
+```
+
+Web defaults:
+
+```bash
+VITE_SERVER_URL=http://localhost:5005
+```
+
+## RBAC
+
+Permissions are defined in [`packages/rbac`](packages/rbac). The maps file is the seed default only; runtime authorization reads from PostgreSQL and Redis.
+
+```bash
 bun run db:migrate
 bun run db:seed
 ```
 
-- **Routes** declare required permissions via `requirePermission(Permissions.*)` (see `apps/server/src/rbac/guards`).
-- **Effective permissions** are cached per user in Redis (`rbac:effective:{userId}`) and attached in `authGuard`.
-- **Web UI** loads permissions from Better Auth `getSession` via `customSession` (see `apps/web/src/features/user/lib/get-root-session.ts`). `GET /session/context` remains available as a compatibility endpoint.
-- **Owner rules**: owner role permissions are protected; admins cannot view or modify owner accounts.
+- Routes declare required permissions through `requirePermission(Permissions.*)`.
+- Effective permissions are cached per user in Redis.
+- Owner role permissions are protected; admins cannot view or modify owner accounts.
 
 Tests live in [`apps/server/tests/rbac`](apps/server/tests/rbac).
 
-## Redis Setup
+## Redis
 
-Redis is required for this starter. The shared client lives in `packages/redis`, so the server can use one shared connection for rate limits, visitor tracking, caching, and future cross-instance coordination.
-
-1. Start Redis locally:
+Redis is required for Mail Kit. The shared client lives in `packages/redis`, and the server uses it for rate limits, visitor tracking, caching, and future cross-instance coordination.
 
 ```bash
-docker run --name ts-starter-redis -p 6379:6379 -d redis:7-alpine
+docker run --name mail-kit-redis -p 6379:6379 -d redis:7-alpine
 ```
 
-2. Add these variables to `apps/server/.env`:
-
-```bash
-REDIS_URL=redis://localhost:6379
-REDIS_KEY_PREFIX=ts-starter:
-```
-
-3. Install dependencies after pulling the latest changes:
-
-```bash
-bun install
-```
-
-4. Import the shared client where you need caching:
-
-```ts
-import { getCache, setCache } from "@redis";
-
-const cachedUser = await getCache<{ id: string; email: string }>("user:123");
-
-if (!cachedUser) {
-  const user = await loadUserFromDatabase();
-  await setCache("user:123", user, 60);
-}
-```
-
-Use Redis for short-lived, regeneratable data such as API responses, rate-limit counters, sessions, or expensive query results. Do not treat it as your source of truth; PostgreSQL remains the real database.
+Use Redis only for short-lived, regeneratable data. PostgreSQL remains the source of truth.
 
 ## Project Structure
 
-```
-ts-starter/
+```txt
+mail-kit/
 ├── apps/
-│   ├── web/         # Frontend application (React + TanStack Start)
-│   └── server/      # Backend API (Elysia)
+│   ├── web/         # Frontend application
+│   └── server/      # Backend API
 ├── packages/
-│   ├── api/         # API layer / business logic
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
+│   ├── auth/        # Authentication configuration
+│   ├── db/          # Prisma schema and database client
+│   ├── email/       # Email rendering and SMTP sending helpers
+│   ├── env/         # Typed environment variables
+│   └── rbac/        # Roles and permissions
+└── docs/
+    ├── goal.md
+    └── progress-todo.md
 ```
 
 ## Available Scripts
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run dev:server`: Start only the server
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:studio`: Open database studio UI
+- `bun run dev`: start all applications in development mode
+- `bun run build`: build all applications
+- `bun run dev:web`: start only the web application
+- `bun run dev:server`: start only the server
+- `bun run check-types`: check TypeScript types across all apps
+- `bun run db:generate`: generate Prisma client
+- `bun run db:migrate`: run database migrations
+- `bun run db:seed`: seed RBAC data
+- `bun run db:studio`: open Prisma Studio

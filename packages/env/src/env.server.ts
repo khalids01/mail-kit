@@ -6,7 +6,8 @@ export const env = createEnv({
   server: {
     DATABASE_URL: z.string().min(1),
     REDIS_URL: z.string().url(),
-    REDIS_KEY_PREFIX: z.string().default("ts-starter:"),
+    REDIS_KEY_PREFIX: z.string().default("mail-kit:"),
+    PORT: z.coerce.number().int().positive().default(5005),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),
     AUTH_SESSION_COOKIE_NAME: z.string().min(1).default("better-auth.session_token"),

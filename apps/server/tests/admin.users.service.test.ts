@@ -117,13 +117,13 @@ mock.module("@email/server", () => ({
 
 mock.module("@env/server", () => ({
   env: {
-    CORS_ORIGIN: "http://localhost:3000",
+    CORS_ORIGIN: "http://localhost:5006",
   },
 }));
 
 mock.module("@config", () => ({
   siteConfig: {
-    name: "TS Starter",
+    name: "Mail Kit",
   },
 }));
 

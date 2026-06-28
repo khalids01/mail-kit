@@ -27,7 +27,7 @@ export const sendEmail = async ({
   from?: string;
 }) => {
   const fromAddress =
-    from ?? `${env.SMTP_FROM || "Starter"} <${env.SMTP_USER}>`;
+    from ?? `${env.SMTP_FROM || "Mail Kit"} <${env.SMTP_USER}>`;
 
   try {
     const info = await transporter.sendMail({

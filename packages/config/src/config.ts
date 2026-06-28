@@ -1,6 +1,6 @@
 
 export const siteConfig = {
-    name: "Saas Starter",
-    description: "Modern SaaS Starter with Elysia, Tanstack start and Better Auth",
+    name: "Mail Kit",
+    description: "Self-hostable email platform for transactional sending and inbound inboxes.",
     url: "https://example.com",
 };

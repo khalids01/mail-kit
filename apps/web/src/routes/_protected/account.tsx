@@ -125,7 +125,7 @@ function AccountPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Current Plan</p>
                   <h3 className="text-xl font-bold mt-1">
-                    {session?.user.plan === "pro" ? "Pro Plan" : "Free Starter"}
+                    {session?.user.plan === "pro" ? "Pro Plan" : "Free Plan"}
                   </h3>
                 </div>
                 <div className="text-right">

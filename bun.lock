@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "ts-starter",
+      "name": "mail-kit",
       "dependencies": {
         "@env": "workspace:*",
         "@t3-oss/env-core": "^0.13.10",

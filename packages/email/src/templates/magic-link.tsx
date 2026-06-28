@@ -20,12 +20,12 @@ export function MagicLinkEmail({ url }: MagicLinkEmailProps) {
   return (
     <Html>
       <Head />
-      <Preview>Sign in to TS Starter</Preview>
+      <Preview>Sign in to Mail Kit</Preview>
       <Tailwind>
         <Body className="m-0 bg-gray-100 p-0 text-gray-800">
           <Container className="my-10 rounded-lg border border-gray-200 bg-white px-10 py-10">
             <Text className="m-0 mb-6 text-center text-2xl font-bold text-black">
-              TS Starter
+              Mail Kit
             </Text>
 
             <Section className="mb-4">
@@ -61,7 +61,7 @@ export function MagicLinkEmail({ url }: MagicLinkEmailProps) {
                 If you didn&apos;t request this email, you can safely ignore it.
               </Text>
               <Text className="m-0 mb-1.5 text-xs leading-[1.4] text-gray-500">
-                {`© ${new Date().getFullYear()} TS Starter. All rights reserved.`}
+                {`© ${new Date().getFullYear()} Mail Kit. All rights reserved.`}
               </Text>
             </Section>
           </Container>
