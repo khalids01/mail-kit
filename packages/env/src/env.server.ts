@@ -1,6 +1,11 @@
-import "dotenv/config";
 import { createEnv } from "@t3-oss/env-core";
+import dotenv from "dotenv";
+import path from "node:path";
 import { z } from "zod";
+
+dotenv.config({
+  path: path.resolve(import.meta.dir, "../../../apps/server/.env"),
+});
 
 export const env = createEnv({
   server: {
@@ -31,16 +36,12 @@ export const env = createEnv({
       .default("development"),
     SMTP_HOST: z.string().optional(),
     SMTP_PORT: z.string().optional(),
-    SMTP_USER: z.string().optional(),
-    SMTP_PASS: z.string().optional(),
-    SMTP_FROM: z.string().optional(),
-    SMTP_SECURE: z.string().optional(),
+    EMAIL: z.string().optional(),
+    EMAIL_PASSWORD: z.string().optional(),
+    EMAIL_FROM: z.string().optional(),
   },
   runtimeEnv: {
     ...process.env,
-    SMTP_USER: process.env.SMTP_USER || process.env.EMAIL,
-    SMTP_PASS: process.env.SMTP_PASS || process.env.EMAIL_PASSWORD,
-    SMTP_FROM: process.env.SMTP_FROM || process.env.EMAIL_FROM,
   },
   emptyStringAsUndefined: true,
 });

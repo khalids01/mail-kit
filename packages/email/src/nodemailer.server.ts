@@ -6,8 +6,8 @@ export const transporter = nodemailer.createTransport({
   port: env.SMTP_PORT ? parseInt(env.SMTP_PORT) : 587,
   secure: env.SMTP_PORT === "465",
   auth: {
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
+    user: env.EMAIL,
+    pass: env.EMAIL_PASSWORD,
   },
   logger: env.NODE_ENV !== "production",
   debug: env.NODE_ENV !== "production",
@@ -27,7 +27,7 @@ export const sendEmail = async ({
   from?: string;
 }) => {
   const fromAddress =
-    from ?? `${env.SMTP_FROM || "Mail Kit"} <${env.SMTP_USER}>`;
+    from ?? `${env.EMAIL_FROM || "Mail Kit"} <${env.EMAIL}>`;
 
   try {
     const info = await transporter.sendMail({

@@ -51,7 +51,9 @@ Development SMTP config:
 ```env
 SMTP_HOST=localhost
 SMTP_PORT=1025
-SMTP_SECURE=false
+EMAIL=you@example.com
+EMAIL_PASSWORD=
+EMAIL_FROM="TS Starter"
 ```
 
 ## Production Flow
