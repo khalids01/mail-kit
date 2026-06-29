@@ -34,10 +34,10 @@ Install dependencies:
 bun install
 ```
 
-Start PostgreSQL and Redis:
+Start PostgreSQL, Redis, and Mailpit:
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose.setup.yml up -d
 ```
 
 Generate Prisma client, run migrations, and seed RBAC:
@@ -48,12 +48,6 @@ bun run db:migrate
 bun run db:seed
 ```
 
-For local email testing, run Mailpit separately:
-
-```bash
-docker run --name mail-kit-mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit
-```
-
 Local SMTP settings:
 
 ```bash
@@ -61,7 +55,7 @@ SMTP_HOST=localhost
 SMTP_PORT=1025
 EMAIL=you@example.com
 EMAIL_PASSWORD=
-EMAIL_FROM="TS Starter"
+EMAIL_FROM="Mail Kit"
 ```
 
 Start the apps:

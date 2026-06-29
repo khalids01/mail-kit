@@ -53,7 +53,7 @@ SMTP_HOST=localhost
 SMTP_PORT=1025
 EMAIL=you@example.com
 EMAIL_PASSWORD=
-EMAIL_FROM="TS Starter"
+EMAIL_FROM="Mail Kit"
 ```
 
 ## Production Flow
