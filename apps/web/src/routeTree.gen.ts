@@ -23,13 +23,20 @@ import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminRolesRouteImport } from './routes/admin/roles'
 import { Route as AdminRateLimitsRouteImport } from './routes/admin/rate-limits'
 import { Route as AdminOverviewRouteImport } from './routes/admin/overview'
+import { Route as AdminMailRouteImport } from './routes/admin/mail'
 import { Route as AdminFeedbackRouteImport } from './routes/admin/feedback'
 import { Route as AdminActivityRouteImport } from './routes/admin/activity'
+import { Route as ProtectedSendTestRouteImport } from './routes/_protected/send-test'
+import { Route as ProtectedEmailsRouteImport } from './routes/_protected/emails'
+import { Route as ProtectedDomainsRouteImport } from './routes/_protected/domains'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
+import { Route as ProtectedApiKeysRouteImport } from './routes/_protected/api-keys'
 import { Route as ProtectedAccountRouteImport } from './routes/_protected/account'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin/roles/$roleId'
+import { Route as ProtectedEmailsEmailIdRouteImport } from './routes/_protected/emails/$emailId'
+import { Route as ProtectedDomainsDomainIdRouteImport } from './routes/_protected/domains/$domainId'
 
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
@@ -100,6 +107,11 @@ const AdminOverviewRoute = AdminOverviewRouteImport.update({
   path: '/overview',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMailRoute = AdminMailRouteImport.update({
+  id: '/mail',
+  path: '/mail',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFeedbackRoute = AdminFeedbackRouteImport.update({
   id: '/feedback',
   path: '/feedback',
@@ -110,9 +122,29 @@ const AdminActivityRoute = AdminActivityRouteImport.update({
   path: '/activity',
   getParentRoute: () => AdminRoute,
 } as any)
+const ProtectedSendTestRoute = ProtectedSendTestRouteImport.update({
+  id: '/send-test',
+  path: '/send-test',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedEmailsRoute = ProtectedEmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedDomainsRoute = ProtectedDomainsRouteImport.update({
+  id: '/domains',
+  path: '/domains',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedApiKeysRoute = ProtectedApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedAccountRoute = ProtectedAccountRouteImport.update({
@@ -135,6 +167,17 @@ const AdminRolesRoleIdRoute = AdminRolesRoleIdRouteImport.update({
   path: '/$roleId',
   getParentRoute: () => AdminRolesRoute,
 } as any)
+const ProtectedEmailsEmailIdRoute = ProtectedEmailsEmailIdRouteImport.update({
+  id: '/$emailId',
+  path: '/$emailId',
+  getParentRoute: () => ProtectedEmailsRoute,
+} as any)
+const ProtectedDomainsDomainIdRoute =
+  ProtectedDomainsDomainIdRouteImport.update({
+    id: '/$domainId',
+    path: '/$domainId',
+    getParentRoute: () => ProtectedDomainsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
@@ -145,9 +188,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/account': typeof ProtectedAccountRoute
+  '/api-keys': typeof ProtectedApiKeysRoute
   '/dashboard': typeof ProtectedDashboardRoute
+  '/domains': typeof ProtectedDomainsRouteWithChildren
+  '/emails': typeof ProtectedEmailsRouteWithChildren
+  '/send-test': typeof ProtectedSendTestRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/feedback': typeof AdminFeedbackRoute
+  '/admin/mail': typeof AdminMailRoute
   '/admin/overview': typeof AdminOverviewRoute
   '/admin/rate-limits': typeof AdminRateLimitsRoute
   '/admin/roles': typeof AdminRolesRouteWithChildren
@@ -156,6 +204,8 @@ export interface FileRoutesByFullPath {
   '/admin/webhooks': typeof AdminWebhooksRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/admin/': typeof AdminIndexRoute
+  '/domains/$domainId': typeof ProtectedDomainsDomainIdRoute
+  '/emails/$emailId': typeof ProtectedEmailsEmailIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
 }
 export interface FileRoutesByTo {
@@ -166,9 +216,14 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/account': typeof ProtectedAccountRoute
+  '/api-keys': typeof ProtectedApiKeysRoute
   '/dashboard': typeof ProtectedDashboardRoute
+  '/domains': typeof ProtectedDomainsRouteWithChildren
+  '/emails': typeof ProtectedEmailsRouteWithChildren
+  '/send-test': typeof ProtectedSendTestRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/feedback': typeof AdminFeedbackRoute
+  '/admin/mail': typeof AdminMailRoute
   '/admin/overview': typeof AdminOverviewRoute
   '/admin/rate-limits': typeof AdminRateLimitsRoute
   '/admin/roles': typeof AdminRolesRouteWithChildren
@@ -177,6 +232,8 @@ export interface FileRoutesByTo {
   '/admin/webhooks': typeof AdminWebhooksRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/admin': typeof AdminIndexRoute
+  '/domains/$domainId': typeof ProtectedDomainsDomainIdRoute
+  '/emails/$emailId': typeof ProtectedEmailsEmailIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
 }
 export interface FileRoutesById {
@@ -189,9 +246,14 @@ export interface FileRoutesById {
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/_protected/account': typeof ProtectedAccountRoute
+  '/_protected/api-keys': typeof ProtectedApiKeysRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
+  '/_protected/domains': typeof ProtectedDomainsRouteWithChildren
+  '/_protected/emails': typeof ProtectedEmailsRouteWithChildren
+  '/_protected/send-test': typeof ProtectedSendTestRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/feedback': typeof AdminFeedbackRoute
+  '/admin/mail': typeof AdminMailRoute
   '/admin/overview': typeof AdminOverviewRoute
   '/admin/rate-limits': typeof AdminRateLimitsRoute
   '/admin/roles': typeof AdminRolesRouteWithChildren
@@ -201,6 +263,8 @@ export interface FileRoutesById {
   '/payment/success': typeof PaymentSuccessRoute
   '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_protected/domains/$domainId': typeof ProtectedDomainsDomainIdRoute
+  '/_protected/emails/$emailId': typeof ProtectedEmailsEmailIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
 }
 export interface FileRouteTypes {
@@ -214,9 +278,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/account'
+    | '/api-keys'
     | '/dashboard'
+    | '/domains'
+    | '/emails'
+    | '/send-test'
     | '/admin/activity'
     | '/admin/feedback'
+    | '/admin/mail'
     | '/admin/overview'
     | '/admin/rate-limits'
     | '/admin/roles'
@@ -225,6 +294,8 @@ export interface FileRouteTypes {
     | '/admin/webhooks'
     | '/payment/success'
     | '/admin/'
+    | '/domains/$domainId'
+    | '/emails/$emailId'
     | '/admin/roles/$roleId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -235,9 +306,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/account'
+    | '/api-keys'
     | '/dashboard'
+    | '/domains'
+    | '/emails'
+    | '/send-test'
     | '/admin/activity'
     | '/admin/feedback'
+    | '/admin/mail'
     | '/admin/overview'
     | '/admin/rate-limits'
     | '/admin/roles'
@@ -246,6 +322,8 @@ export interface FileRouteTypes {
     | '/admin/webhooks'
     | '/payment/success'
     | '/admin'
+    | '/domains/$domainId'
+    | '/emails/$emailId'
     | '/admin/roles/$roleId'
   id:
     | '__root__'
@@ -257,9 +335,14 @@ export interface FileRouteTypes {
     | '/_auth/login'
     | '/_auth/signup'
     | '/_protected/account'
+    | '/_protected/api-keys'
     | '/_protected/dashboard'
+    | '/_protected/domains'
+    | '/_protected/emails'
+    | '/_protected/send-test'
     | '/admin/activity'
     | '/admin/feedback'
+    | '/admin/mail'
     | '/admin/overview'
     | '/admin/rate-limits'
     | '/admin/roles'
@@ -269,6 +352,8 @@ export interface FileRouteTypes {
     | '/payment/success'
     | '/_public/'
     | '/admin/'
+    | '/_protected/domains/$domainId'
+    | '/_protected/emails/$emailId'
     | '/admin/roles/$roleId'
   fileRoutesById: FileRoutesById
 }
@@ -384,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOverviewRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/mail': {
+      id: '/admin/mail'
+      path: '/mail'
+      fullPath: '/admin/mail'
+      preLoaderRoute: typeof AdminMailRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/feedback': {
       id: '/admin/feedback'
       path: '/feedback'
@@ -398,11 +490,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminActivityRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_protected/send-test': {
+      id: '/_protected/send-test'
+      path: '/send-test'
+      fullPath: '/send-test'
+      preLoaderRoute: typeof ProtectedSendTestRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/emails': {
+      id: '/_protected/emails'
+      path: '/emails'
+      fullPath: '/emails'
+      preLoaderRoute: typeof ProtectedEmailsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/domains': {
+      id: '/_protected/domains'
+      path: '/domains'
+      fullPath: '/domains'
+      preLoaderRoute: typeof ProtectedDomainsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/dashboard': {
       id: '/_protected/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof ProtectedDashboardRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/api-keys': {
+      id: '/_protected/api-keys'
+      path: '/api-keys'
+      fullPath: '/api-keys'
+      preLoaderRoute: typeof ProtectedApiKeysRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/account': {
@@ -433,17 +553,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRolesRoleIdRouteImport
       parentRoute: typeof AdminRolesRoute
     }
+    '/_protected/emails/$emailId': {
+      id: '/_protected/emails/$emailId'
+      path: '/$emailId'
+      fullPath: '/emails/$emailId'
+      preLoaderRoute: typeof ProtectedEmailsEmailIdRouteImport
+      parentRoute: typeof ProtectedEmailsRoute
+    }
+    '/_protected/domains/$domainId': {
+      id: '/_protected/domains/$domainId'
+      path: '/$domainId'
+      fullPath: '/domains/$domainId'
+      preLoaderRoute: typeof ProtectedDomainsDomainIdRouteImport
+      parentRoute: typeof ProtectedDomainsRoute
+    }
   }
 }
 
+interface ProtectedDomainsRouteChildren {
+  ProtectedDomainsDomainIdRoute: typeof ProtectedDomainsDomainIdRoute
+}
+
+const ProtectedDomainsRouteChildren: ProtectedDomainsRouteChildren = {
+  ProtectedDomainsDomainIdRoute: ProtectedDomainsDomainIdRoute,
+}
+
+const ProtectedDomainsRouteWithChildren =
+  ProtectedDomainsRoute._addFileChildren(ProtectedDomainsRouteChildren)
+
+interface ProtectedEmailsRouteChildren {
+  ProtectedEmailsEmailIdRoute: typeof ProtectedEmailsEmailIdRoute
+}
+
+const ProtectedEmailsRouteChildren: ProtectedEmailsRouteChildren = {
+  ProtectedEmailsEmailIdRoute: ProtectedEmailsEmailIdRoute,
+}
+
+const ProtectedEmailsRouteWithChildren = ProtectedEmailsRoute._addFileChildren(
+  ProtectedEmailsRouteChildren,
+)
+
 interface ProtectedRouteChildren {
   ProtectedAccountRoute: typeof ProtectedAccountRoute
+  ProtectedApiKeysRoute: typeof ProtectedApiKeysRoute
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
+  ProtectedDomainsRoute: typeof ProtectedDomainsRouteWithChildren
+  ProtectedEmailsRoute: typeof ProtectedEmailsRouteWithChildren
+  ProtectedSendTestRoute: typeof ProtectedSendTestRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedAccountRoute: ProtectedAccountRoute,
+  ProtectedApiKeysRoute: ProtectedApiKeysRoute,
   ProtectedDashboardRoute: ProtectedDashboardRoute,
+  ProtectedDomainsRoute: ProtectedDomainsRouteWithChildren,
+  ProtectedEmailsRoute: ProtectedEmailsRouteWithChildren,
+  ProtectedSendTestRoute: ProtectedSendTestRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
@@ -465,6 +630,7 @@ const AdminRolesRouteWithChildren = AdminRolesRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminActivityRoute: typeof AdminActivityRoute
   AdminFeedbackRoute: typeof AdminFeedbackRoute
+  AdminMailRoute: typeof AdminMailRoute
   AdminOverviewRoute: typeof AdminOverviewRoute
   AdminRateLimitsRoute: typeof AdminRateLimitsRoute
   AdminRolesRoute: typeof AdminRolesRouteWithChildren
@@ -477,6 +643,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminActivityRoute: AdminActivityRoute,
   AdminFeedbackRoute: AdminFeedbackRoute,
+  AdminMailRoute: AdminMailRoute,
   AdminOverviewRoute: AdminOverviewRoute,
   AdminRateLimitsRoute: AdminRateLimitsRoute,
   AdminRolesRoute: AdminRolesRouteWithChildren,

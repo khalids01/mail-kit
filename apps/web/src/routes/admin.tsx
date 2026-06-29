@@ -27,6 +27,7 @@ import {
   History,
   Webhook,
   Shield,
+  Mail,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import UserMenu from "@/components/core/user-menu";
@@ -36,6 +37,7 @@ import BrandMark from "@/components/core/logo";
 import {
   canShowActivityNav,
   canShowFeedbackNav,
+  canShowMailNav,
   canShowRateLimitsNav,
   canShowRolesNav,
   canShowUsersNav,
@@ -112,6 +114,12 @@ function getAdminNavItems(session: ClientSession | null | undefined): AdminNavIt
       icon: History,
       url: "/admin/activity",
       show: canShowActivityNav(session),
+    },
+    {
+      title: "Mail",
+      icon: Mail,
+      url: "/admin/mail",
+      show: canShowMailNav(session),
     },
     {
       title: "Webhooks",

@@ -20,6 +20,9 @@ model User {
   targetedActivityEvents ActivityEvent[] @relation("ActivityEventTarget")
   rbacRoles              RbacUserRole[]
   rbacPermissionOverrides RbacUserPermissionOverride[]
+  domains                Domain[]
+  apiKeys                ApiKey[]
+  emailMessages          EmailMessage[]
 
   // Polar Integration
   polarCustomerId    String?

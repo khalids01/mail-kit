@@ -8,13 +8,13 @@
 - [x] Set local web port to `5006`.
 - [x] Add product goal and progress docs.
 - [ ] Create product dashboard layout for projects/workspaces.
-- [ ] Add API key management.
-- [ ] Add domains table.
-- [ ] Add DNS setup screen.
-- [ ] Add DNS verification.
-- [ ] Add `POST /emails/send`.
-- [ ] Integrate Nodemailer sending with Mailpit for local testing.
-- [ ] Add email logs page.
+- [x] Add API key management.
+- [x] Add domains table.
+- [x] Add DNS setup screen.
+- [x] Add DNS verification.
+- [x] Add `POST /emails/send`.
+- [x] Integrate Nodemailer sending with Mailpit for local testing.
+- [x] Add email logs page.
 
 ## Phase 2
 
@@ -33,6 +33,6 @@
 - [ ] Add open/click tracking.
 - [ ] Add rate limiting for email APIs.
 - [ ] Add abuse protection.
-- [ ] Add admin monitoring.
+- [x] Add admin monitoring.
 - [ ] Add multi-tenant limits.
 - [ ] Add billing when product scope is ready.

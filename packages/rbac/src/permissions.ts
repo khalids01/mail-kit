@@ -16,6 +16,8 @@ export const Permissions = {
   AdminMetadataRead: "admin.metadata.read",
   AdminWebhooksRead: "admin.webhooks.read",
   AdminRateLimitManage: "admin.rate_limit.manage",
+  AdminMailRead: "admin.mail.read",
+  AdminMailManage: "admin.mail.manage",
 
   AdminRolesList: "admin.roles.list",
   AdminRolesRead: "admin.roles.read",
@@ -27,6 +29,11 @@ export const Permissions = {
   FeedbackModerate: "feedback.moderate",
 
   NotificationsUse: "notifications.use",
+
+  MailDomainsManage: "mail.domains.manage",
+  MailApiKeysManage: "mail.api_keys.manage",
+  MailEmailsSend: "mail.emails.send",
+  MailEmailsRead: "mail.emails.read",
 } as const;
 
 export type Permission = (typeof Permissions)[keyof typeof Permissions];

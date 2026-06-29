@@ -60,6 +60,32 @@ export const queryKeys = {
         page: number;
       }) => [...queryKeys.admin.invitations.all(), params] as const,
     },
+    mail: {
+      overview: () => ["admin-mail-overview"] as const,
+      domains: (params: { page: number; status: string; search: string }) =>
+        ["admin-mail-domains", params] as const,
+      emails: (params: { page: number; status: string; search: string }) =>
+        ["admin-mail-emails", params] as const,
+      apiKeys: (params: { page: number; search: string }) =>
+        ["admin-mail-api-keys", params] as const,
+    },
+  },
+  mail: {
+    overview: () => ["mail-overview"] as const,
+    domains: {
+      all: () => ["mail-domains"] as const,
+      detail: (domainId: string) => ["mail-domain", domainId] as const,
+    },
+    apiKeys: () => ["mail-api-keys"] as const,
+    emails: {
+      list: (params: {
+        page: number;
+        status: string;
+        domainId: string;
+        search: string;
+      }) => ["mail-emails", params] as const,
+      detail: (emailId: string) => ["mail-email", emailId] as const,
+    },
   },
   invitations: {
     detail: (invitationId: string) => ["invitation", invitationId] as const,

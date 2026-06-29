@@ -106,3 +106,11 @@ export function canShowWebhooksNav(session: ClientSession | null | undefined) {
     sessionHasPermission(session?.permissions ?? [], Permissions.AdminWebhooksRead)
   );
 }
+
+export function canShowMailNav(session: ClientSession | null | undefined) {
+  return (
+    isPlatformOwner(session) ||
+    sessionHasPermission(session?.permissions ?? [], Permissions.AdminMailRead) ||
+    sessionHasPermission(session?.permissions ?? [], Permissions.AdminMailManage)
+  );
+}

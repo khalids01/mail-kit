@@ -19,7 +19,11 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
+  FileText,
+  Globe2,
+  KeyRound,
   LayoutDashboard,
+  Send,
   User as UserIcon,
   ChevronRight,
 } from "lucide-react";
@@ -64,6 +68,26 @@ const navItems = [
     title: "Dashboard",
     icon: LayoutDashboard,
     url: "/dashboard",
+  },
+  {
+    title: "Domains",
+    icon: Globe2,
+    url: "/domains",
+  },
+  {
+    title: "API Keys",
+    icon: KeyRound,
+    url: "/api-keys",
+  },
+  {
+    title: "Email Logs",
+    icon: FileText,
+    url: "/emails",
+  },
+  {
+    title: "Send Test",
+    icon: Send,
+    url: "/send-test",
   },
   {
     title: "Account",

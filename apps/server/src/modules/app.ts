@@ -15,6 +15,8 @@ import { adminVisitorsController } from "./admin/visitors/visitors.controller";
 import { adminActivityController } from "./admin/activity/activity.controller";
 import { adminWebhooksController } from "./admin/webhooks/webhooks.controller";
 import { rolesController } from "./admin/roles/roles.controller";
+import { mailController } from "./mail/mail.controller";
+import { adminMailController } from "./admin/mail/mail.controller";
 
 export const app = new Elysia()
   .use(authController)
@@ -29,6 +31,8 @@ export const app = new Elysia()
   .use(adminVisitorsController)
   .use(adminActivityController)
   .use(adminWebhooksController)
+  .use(adminMailController)
+  .use(mailController)
   .use(notificationsController)
   .use(feedbackController)
   .use(polarController)

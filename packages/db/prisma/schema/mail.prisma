@@ -1,0 +1,114 @@
+enum DomainStatus {
+  pending
+  verified
+  failed
+  suspended
+}
+
+enum DnsRecordStatus {
+  pending
+  verified
+  failed
+}
+
+enum EmailStatus {
+  queued
+  sent
+  failed
+}
+
+model Domain {
+  id                 String       @id @default(cuid())
+  userId             String
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name               String
+  status             DomainStatus @default(pending)
+  verificationStatus DomainStatus @default(pending)
+  sendingEnabled     Boolean      @default(false)
+  suspendedAt        DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  dnsRecords    DnsRecord[]
+  emailMessages EmailMessage[]
+
+  @@unique([userId, name])
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@map("domain")
+}
+
+model DnsRecord {
+  id            String          @id @default(cuid())
+  domainId      String
+  domain        Domain          @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  type          String
+  name          String
+  value         String
+  purpose       String
+  status        DnsRecordStatus @default(pending)
+  lastCheckedAt DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([domainId])
+  @@index([status])
+  @@map("dns_record")
+}
+
+model ApiKey {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  prefix    String
+  hash      String    @unique
+  lastUsedAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([prefix])
+  @@index([revokedAt])
+  @@map("api_key")
+}
+
+model EmailMessage {
+  id                String      @id @default(cuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domainId          String?
+  domain            Domain?     @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  fromAddress       String      @map("from")
+  toAddress         String      @map("to")
+  subject           String
+  html              String?
+  text              String?
+  status            EmailStatus @default(queued)
+  providerMessageId String?
+  errorMessage      String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  events EmailLog[]
+
+  @@index([userId, createdAt])
+  @@index([domainId, createdAt])
+  @@index([status, createdAt])
+  @@map("email_message")
+}
+
+model EmailLog {
+  id             String       @id @default(cuid())
+  emailMessageId String
+  emailMessage   EmailMessage @relation(fields: [emailMessageId], references: [id], onDelete: Cascade)
+  type           String
+  message        String
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([emailMessageId, createdAt])
+  @@index([type, createdAt])
+  @@map("email_log")
+}

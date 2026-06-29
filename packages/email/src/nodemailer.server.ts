@@ -22,7 +22,7 @@ export const sendEmail = async ({
 }: {
   to: string;
   subject: string;
-  html: string;
+  html?: string;
   text?: string;
   from?: string;
 }) => {

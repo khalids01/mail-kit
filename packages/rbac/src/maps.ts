@@ -13,6 +13,10 @@ const platformAdminPermissions = adminPermissions.filter(
 const platformUserPermissions = [
   Permissions.FeedbackSubmit,
   Permissions.NotificationsUse,
+  Permissions.MailDomainsManage,
+  Permissions.MailApiKeysManage,
+  Permissions.MailEmailsSend,
+  Permissions.MailEmailsRead,
 ] as const satisfies readonly Permission[];
 
 export const RolePermissionMap = {
