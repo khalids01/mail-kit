@@ -1,0 +1,92 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: mail-kit-prod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mailkit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-mailkit}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mailkit} -d ${POSTGRES_DB:-mailkit}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: mail-kit-prod-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: mail-kit-prod-server
+    restart: unless-stopped
+    env_file:
+      - path: apps/server/.env.production
+        required: false
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mailkit}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mailkit}
+      REDIS_URL: redis://redis:6379
+      PORT: 5005
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    expose:
+      - "5005"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_SERVER_URL: ${PUBLIC_API_URL}
+        VITE_OWNER_SETUP_CHECK: ${VITE_OWNER_SETUP_CHECK:-false}
+    container_name: mail-kit-prod-web
+    restart: unless-stopped
+    env_file:
+      - path: apps/web/.env.production
+        required: false
+    depends_on:
+      - server
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: mail-kit-prod-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - server
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:

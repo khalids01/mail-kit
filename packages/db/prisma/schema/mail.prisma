@@ -17,6 +17,19 @@ enum EmailStatus {
   failed
 }
 
+enum InboundEmailStatus {
+  unread
+  read
+  archived
+  deleted
+}
+
+enum MailboxStatus {
+  active
+  disabled
+  sync_failed
+}
+
 model Domain {
   id                 String       @id @default(cuid())
   userId             String
@@ -31,6 +44,8 @@ model Domain {
 
   dnsRecords    DnsRecord[]
   emailMessages EmailMessage[]
+  mailboxes     MailboxAddress[]
+  inboundEmails InboundEmail[]
 
   @@unique([userId, name])
   @@index([status, createdAt])
@@ -111,4 +126,63 @@ model EmailLog {
   @@index([emailMessageId, createdAt])
   @@index([type, createdAt])
   @@map("email_log")
+}
+
+model MailboxAddress {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domainId      String
+  domain        Domain        @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  address       String
+  localPart     String
+  displayName   String?
+  status        MailboxStatus @default(active)
+  mailuId       String?
+  imapUsername  String?
+  imapPassword  String?
+  lastUid       Int?
+  lastSyncAt    DateTime?
+  syncError     String?
+  disabledAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  inboundEmails InboundEmail[]
+
+  @@unique([userId, address])
+  @@index([domainId, address])
+  @@index([status, updatedAt])
+  @@map("mailbox_address")
+}
+
+model InboundEmail {
+  id                String             @id @default(cuid())
+  userId            String
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domainId          String?
+  domain            Domain?            @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  mailboxId         String?
+  mailbox           MailboxAddress?    @relation(fields: [mailboxId], references: [id], onDelete: SetNull)
+  messageId         String?
+  imapUid           Int?
+  fromAddress       String
+  toAddress         String
+  subject           String
+  html              String?
+  text              String?
+  status            InboundEmailStatus @default(unread)
+  receivedAt        DateTime
+  rawHeaders        Json?
+  archivedAt        DateTime?
+  deletedAt         DateTime?
+  readAt            DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@unique([mailboxId, imapUid])
+  @@index([userId, status, receivedAt])
+  @@index([domainId, receivedAt])
+  @@index([messageId])
+  @@map("inbound_email")
 }

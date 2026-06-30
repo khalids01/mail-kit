@@ -39,6 +39,20 @@ export const env = createEnv({
     EMAIL: z.string().optional(),
     EMAIL_PASSWORD: z.string().optional(),
     EMAIL_FROM: z.string().optional(),
+    MAIL_ENGINE_API_URL: z.string().url().optional(),
+    MAIL_ENGINE_API_TOKEN: z.string().optional(),
+    MAIL_ENGINE_IMAP_HOST: z.string().optional(),
+    MAIL_ENGINE_IMAP_PORT: z.string().optional(),
+    MAIL_ENGINE_IMAP_SECURE: z
+      .string()
+      .default("true")
+      .transform((val) => val === "true"),
+    MAIL_ENGINE_SYNC_ENABLED: z
+      .string()
+      .default("false")
+      .transform((val) => val === "true"),
+    MAIL_ENGINE_SYNC_INTERVAL_SECONDS: z.coerce.number().int().positive().default(300),
+    MAIL_ENGINE_SEND_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(60),
   },
   runtimeEnv: {
     ...process.env,

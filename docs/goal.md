@@ -29,7 +29,7 @@ Mail Kit should not implement the raw SMTP/mail server in TypeScript at first. T
 - Webhook configuration and events
 - Admin monitoring
 
-Production mail handling should use proven infrastructure such as Mailcow, Mailu, Docker Mailserver, Postfix/Dovecot, or a similar mail stack.
+Production mail handling should use Mailu first. Mailu is the hidden mail engine, while Mail Kit remains the only product UI/API users interact with.
 
 ## Local Development Flow
 
@@ -134,6 +134,12 @@ The first receiving version can be simple:
 - Show an inbox list.
 - Show an email detail page.
 - Add basic reply support later.
+
+## Mailu Engine Direction
+
+Mailu should handle SMTP, IMAP, DKIM signing, spam filtering, and mailbox storage. Mail Kit should manage product ownership, API keys, DNS verification, logs, inbox UI, admin controls, and inbound sync.
+
+Initial production receiving uses IMAP sync from Mailu into Mail Kit. Later, mailbox/domain provisioning can be automated through Mailu's API.
 
 ## Known Hard Problems
 

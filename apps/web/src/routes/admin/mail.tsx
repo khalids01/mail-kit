@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Globe2, KeyRound, MailCheck, PauseCircle, PlayCircle, RefreshCw } from "lucide-react";
+import { AlertTriangle, Globe2, KeyRound, MailCheck, Mailbox, PauseCircle, PlayCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Permissions } from "@rbac";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,9 @@ type AdminOverview = {
   sentEmails: number;
   failedEmails: number;
   apiKeys: number;
+  mailboxes: number;
+  unreadInbound: number;
+  syncFailedMailboxes: number;
 };
 
 function AdminMailPage() {
@@ -48,6 +51,7 @@ function AdminMailPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="domains">Domains</TabsTrigger>
           <TabsTrigger value="emails">Email Logs</TabsTrigger>
+          <TabsTrigger value="mailboxes">Mailboxes</TabsTrigger>
           <TabsTrigger value="api-keys">API Keys</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
@@ -58,6 +62,9 @@ function AdminMailPage() {
         </TabsContent>
         <TabsContent value="emails">
           <AdminEmails />
+        </TabsContent>
+        <TabsContent value="mailboxes">
+          <AdminMailboxes canManage={canManage} />
         </TabsContent>
         <TabsContent value="api-keys">
           <AdminApiKeys />
@@ -83,10 +90,13 @@ function AdminMailOverview() {
     { label: "Suspended", value: data?.suspendedDomains ?? 0, icon: PauseCircle },
     { label: "Failed", value: data?.failedEmails ?? 0, icon: AlertTriangle },
     { label: "Active Keys", value: data?.apiKeys ?? 0, icon: KeyRound },
+    { label: "Mailboxes", value: data?.mailboxes ?? 0, icon: Mailbox },
+    { label: "Unread", value: data?.unreadInbound ?? 0, icon: MailCheck },
+    { label: "Sync Failed", value: data?.syncFailedMailboxes ?? 0, icon: AlertTriangle },
   ];
 
   return (
-    <div className="grid gap-4 pt-4 md:grid-cols-5">
+    <div className="grid gap-4 pt-4 md:grid-cols-4 xl:grid-cols-8">
       {metrics.map((metric) => (
         <Card key={metric.label}>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -264,6 +274,108 @@ function AdminEmails() {
   );
 }
 
+function AdminMailboxes({ canManage }: { canManage: boolean }) {
+  const queryClient = useQueryClient();
+  const { object: filters, setObjectValue } = useObject({ page: 1, status: "", search: "" });
+  const queryParams = { page: filters.page, status: filters.status, search: filters.search };
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.admin.mail.mailboxes(queryParams),
+    queryFn: async () => {
+      const { data, error } = await client.admin.mail.mailboxes.get({
+        query: {
+          page: filters.page,
+          status: filters.status || undefined,
+          search: filters.search || undefined,
+        },
+      });
+      if (error) throw new Error("Failed to load mailboxes");
+      return data as any;
+    },
+  });
+
+  const mutateMailbox = useMutation({
+    mutationFn: async ({ id, action }: { id: string; action: "sync" | "disable" | "enable" }) => {
+      const request =
+        action === "sync"
+          ? client.admin.mail.mailboxes({ id }).sync.post()
+          : action === "disable"
+            ? client.admin.mail.mailboxes({ id }).disable.post()
+            : client.admin.mail.mailboxes({ id }).enable.post();
+      const { error } = await request;
+      if (error) throw new Error("Mailbox action failed");
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin-mail-mailboxes"] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.admin.mail.overview() });
+      toast.success("Mailbox updated");
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle>Mailboxes</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Input
+          value={filters.search}
+          placeholder="Search address, owner, or domain"
+          onChange={(event) => {
+            setObjectValue("search", event.target.value);
+            setObjectValue("page", 1);
+          }}
+        />
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Address</TableHead>
+              <TableHead>Owner</TableHead>
+              <TableHead>Domain</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Last sync</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow><TableCell colSpan={6}>Loading mailboxes...</TableCell></TableRow>
+            ) : data?.items?.length ? (
+              data.items.map((mailbox: any) => (
+                <TableRow key={mailbox.id}>
+                  <TableCell className="font-medium">{mailbox.address}</TableCell>
+                  <TableCell>{mailbox.user.email}</TableCell>
+                  <TableCell>{mailbox.domain.name}</TableCell>
+                  <TableCell><StatusBadge status={mailbox.status} /></TableCell>
+                  <TableCell>{mailbox.lastSyncAt ? formatDate(mailbox.lastSyncAt) : "Never"}</TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm" disabled={!canManage} onClick={() => mutateMailbox.mutate({ id: mailbox.id, action: "sync" })}>
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                      {mailbox.disabledAt ? (
+                        <Button variant="outline" size="sm" disabled={!canManage} onClick={() => mutateMailbox.mutate({ id: mailbox.id, action: "enable" })}>
+                          <PlayCircle className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button variant="outline" size="sm" disabled={!canManage} onClick={() => mutateMailbox.mutate({ id: mailbox.id, action: "disable" })}>
+                          <PauseCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow><TableCell colSpan={6}>No mailboxes found.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
 function AdminApiKeys() {
   const { object: filters, setObjectValue } = useObject({ page: 1, search: "" });
   const queryParams = { page: filters.page, search: filters.search };
@@ -320,7 +432,7 @@ function AdminApiKeys() {
 
 function StatusBadge({ status }: { status: string }) {
   return (
-    <Badge variant={status === "failed" || status === "suspended" || status === "revoked" ? "destructive" : "outline"}>
+    <Badge variant={["failed", "suspended", "revoked", "disabled", "sync_failed"].includes(status) ? "destructive" : "outline"}>
       {status}
     </Badge>
   );

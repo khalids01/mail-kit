@@ -23,6 +23,8 @@ import {
   Globe2,
   KeyRound,
   LayoutDashboard,
+  Mail,
+  Mailbox,
   Send,
   User as UserIcon,
   ChevronRight,
@@ -73,6 +75,16 @@ const navItems = [
     title: "Domains",
     icon: Globe2,
     url: "/domains",
+  },
+  {
+    title: "Mailboxes",
+    icon: Mailbox,
+    url: "/mailboxes",
+  },
+  {
+    title: "Inbox",
+    icon: Mail,
+    url: "/inbox",
   },
   {
     title: "API Keys",

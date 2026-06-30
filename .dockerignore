@@ -1,0 +1,11 @@
+node_modules
+.turbo
+.git
+dist
+apps/server/dist
+apps/web/.output
+apps/web/dist
+*.log
+.env
+apps/server/.env
+apps/web/.env

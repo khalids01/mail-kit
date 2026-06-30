@@ -18,12 +18,12 @@
 
 ## Phase 2
 
-- [ ] Add production SMTP integration.
+- [x] Add production SMTP integration.
 - [ ] Add DKIM/SPF/DMARC support.
-- [ ] Add inbound email receiving.
-- [ ] Add inbox UI.
-- [ ] Add email detail view.
-- [ ] Add basic reply support.
+- [x] Add inbound email receiving.
+- [x] Add inbox UI.
+- [x] Add email detail view.
+- [x] Add basic reply support.
 - [ ] Add webhook events.
 
 ## Phase 3
@@ -31,7 +31,7 @@
 - [ ] Add bounce handling.
 - [ ] Add delivery tracking.
 - [ ] Add open/click tracking.
-- [ ] Add rate limiting for email APIs.
+- [x] Add rate limiting for email APIs.
 - [ ] Add abuse protection.
 - [x] Add admin monitoring.
 - [ ] Add multi-tenant limits.

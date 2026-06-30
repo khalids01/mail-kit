@@ -3,11 +3,25 @@ import { Permissions } from "@rbac";
 import { authGuard } from "@/guards/auth.guard";
 import { requirePermission } from "@/rbac/guards/permissions.guard";
 import { mailService, MailPolicyError } from "./mail.service";
-import { ApiKeyCreateDto, DomainCreateDto, EmailQueryDto, EmailSendDto } from "./mail.dto";
+import {
+  ApiKeyCreateDto,
+  DomainCreateDto,
+  EmailQueryDto,
+  EmailSendDto,
+  InboundEmailQueryDto,
+  InboundEmailUpdateDto,
+  InboundReplyDto,
+  MailboxCreateDto,
+} from "./mail.dto";
 
-function handleMailError(error: unknown, set: { status?: number | string }) {
+function handleMailError(error: unknown, set: { status?: number | string; headers?: Record<string, unknown> }) {
   if (error instanceof MailPolicyError) {
     set.status = error.status;
+    if (error.details?.retryAfterSeconds && set.headers) {
+      set.headers["Retry-After"] = String(error.details.retryAfterSeconds);
+      set.headers["X-RateLimit-Limit"] = String(error.details.limit ?? "");
+      set.headers["X-RateLimit-Remaining"] = "0";
+    }
     return { message: error.message, status: error.status };
   }
 
@@ -115,6 +129,30 @@ export const mailController = new Elysia({
         }),
   )
   .guard(
+    { beforeHandle: requirePermission(Permissions.MailDomainsManage) },
+    (app) =>
+      app
+        .get("/mailboxes", ({ userId }) => mailService.listMailboxes(userId!))
+        .post(
+          "/mailboxes",
+          async ({ userId, body, set }) => {
+            try {
+              return await mailService.createMailbox(userId!, body);
+            } catch (error) {
+              return handleMailError(error, set);
+            }
+          },
+          { body: MailboxCreateDto },
+        )
+        .post("/mailboxes/:id/sync", async ({ userId, params: { id }, set }) => {
+          try {
+            return await mailService.syncMailboxForUser(userId!, id);
+          } catch (error) {
+            return handleMailError(error, set);
+          }
+        }),
+  )
+  .guard(
     { beforeHandle: requirePermission(Permissions.MailEmailsRead) },
     (app) =>
       app
@@ -128,5 +166,38 @@ export const mailController = new Elysia({
             return { message: "Email not found" };
           }
           return email;
-        }),
+        })
+        .get("/inbox", ({ userId, query }) => mailService.listInboundEmails(userId!, query), {
+          query: InboundEmailQueryDto,
+        })
+        .get("/inbox/:id", async ({ userId, params: { id }, set }) => {
+          const email = await mailService.getInboundEmail(userId!, id);
+          if (!email) {
+            set.status = 404;
+            return { message: "Inbound email not found" };
+          }
+          return email;
+        })
+        .post(
+          "/inbox/:id/status",
+          async ({ userId, params: { id }, body, set }) => {
+            try {
+              return await mailService.updateInboundEmail(userId!, id, body);
+            } catch (error) {
+              return handleMailError(error, set);
+            }
+          },
+          { body: InboundEmailUpdateDto },
+        )
+        .post(
+          "/inbox/:id/reply",
+          async ({ userId, params: { id }, body, set }) => {
+            try {
+              return await mailService.replyToInboundEmail(userId!, id, body);
+            } catch (error) {
+              return handleMailError(error, set);
+            }
+          },
+          { body: InboundReplyDto },
+        ),
   );

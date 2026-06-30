@@ -13,7 +13,7 @@ Mail Kit is meant to feel like a clean developer email provider:
 - Manage API keys, webhooks, projects, and admin controls.
 - Run privately on your own VPS before becoming a public provider.
 
-The TypeScript app is not intended to be the raw mail server in the first version. Production mail delivery and receiving should use Mailcow, Mailu, Docker Mailserver, Postfix/Dovecot, or another proven mail stack. Mail Kit manages the SaaS layer around that infrastructure.
+The TypeScript app is not intended to be the raw mail server in the first version. Production mail delivery and receiving should use Mailu as the hidden engine. Mail Kit manages the SaaS layer around that infrastructure.
 
 ## Stack
 
@@ -85,6 +85,12 @@ Web defaults:
 ```bash
 VITE_SERVER_URL=http://localhost:5005
 ```
+
+## VPS Deployment
+
+The first production target uses Mailu as the hidden mail engine and Mail Kit as the product UI/API.
+
+See [`docs/deploy-vps-mailu.md`](docs/deploy-vps-mailu.md) for the one-VPS deployment flow, required DNS records, Mailu SMTP/IMAP wiring, and sending/receiving tests.
 
 ## RBAC
 

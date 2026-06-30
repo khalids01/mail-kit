@@ -27,6 +27,8 @@ import { Route as AdminMailRouteImport } from './routes/admin/mail'
 import { Route as AdminFeedbackRouteImport } from './routes/admin/feedback'
 import { Route as AdminActivityRouteImport } from './routes/admin/activity'
 import { Route as ProtectedSendTestRouteImport } from './routes/_protected/send-test'
+import { Route as ProtectedMailboxesRouteImport } from './routes/_protected/mailboxes'
+import { Route as ProtectedInboxRouteImport } from './routes/_protected/inbox'
 import { Route as ProtectedEmailsRouteImport } from './routes/_protected/emails'
 import { Route as ProtectedDomainsRouteImport } from './routes/_protected/domains'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
@@ -35,6 +37,7 @@ import { Route as ProtectedAccountRouteImport } from './routes/_protected/accoun
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin/roles/$roleId'
+import { Route as ProtectedInboxEmailIdRouteImport } from './routes/_protected/inbox/$emailId'
 import { Route as ProtectedEmailsEmailIdRouteImport } from './routes/_protected/emails/$emailId'
 import { Route as ProtectedDomainsDomainIdRouteImport } from './routes/_protected/domains/$domainId'
 
@@ -127,6 +130,16 @@ const ProtectedSendTestRoute = ProtectedSendTestRouteImport.update({
   path: '/send-test',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedMailboxesRoute = ProtectedMailboxesRouteImport.update({
+  id: '/mailboxes',
+  path: '/mailboxes',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedInboxRoute = ProtectedInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedEmailsRoute = ProtectedEmailsRouteImport.update({
   id: '/emails',
   path: '/emails',
@@ -167,6 +180,11 @@ const AdminRolesRoleIdRoute = AdminRolesRoleIdRouteImport.update({
   path: '/$roleId',
   getParentRoute: () => AdminRolesRoute,
 } as any)
+const ProtectedInboxEmailIdRoute = ProtectedInboxEmailIdRouteImport.update({
+  id: '/$emailId',
+  path: '/$emailId',
+  getParentRoute: () => ProtectedInboxRoute,
+} as any)
 const ProtectedEmailsEmailIdRoute = ProtectedEmailsEmailIdRouteImport.update({
   id: '/$emailId',
   path: '/$emailId',
@@ -192,6 +210,8 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof ProtectedDashboardRoute
   '/domains': typeof ProtectedDomainsRouteWithChildren
   '/emails': typeof ProtectedEmailsRouteWithChildren
+  '/inbox': typeof ProtectedInboxRouteWithChildren
+  '/mailboxes': typeof ProtectedMailboxesRoute
   '/send-test': typeof ProtectedSendTestRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/feedback': typeof AdminFeedbackRoute
@@ -206,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/domains/$domainId': typeof ProtectedDomainsDomainIdRoute
   '/emails/$emailId': typeof ProtectedEmailsEmailIdRoute
+  '/inbox/$emailId': typeof ProtectedInboxEmailIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
 }
 export interface FileRoutesByTo {
@@ -220,6 +241,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof ProtectedDashboardRoute
   '/domains': typeof ProtectedDomainsRouteWithChildren
   '/emails': typeof ProtectedEmailsRouteWithChildren
+  '/inbox': typeof ProtectedInboxRouteWithChildren
+  '/mailboxes': typeof ProtectedMailboxesRoute
   '/send-test': typeof ProtectedSendTestRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/feedback': typeof AdminFeedbackRoute
@@ -234,6 +257,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/domains/$domainId': typeof ProtectedDomainsDomainIdRoute
   '/emails/$emailId': typeof ProtectedEmailsEmailIdRoute
+  '/inbox/$emailId': typeof ProtectedInboxEmailIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
 }
 export interface FileRoutesById {
@@ -250,6 +274,8 @@ export interface FileRoutesById {
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/domains': typeof ProtectedDomainsRouteWithChildren
   '/_protected/emails': typeof ProtectedEmailsRouteWithChildren
+  '/_protected/inbox': typeof ProtectedInboxRouteWithChildren
+  '/_protected/mailboxes': typeof ProtectedMailboxesRoute
   '/_protected/send-test': typeof ProtectedSendTestRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/feedback': typeof AdminFeedbackRoute
@@ -265,6 +291,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/_protected/domains/$domainId': typeof ProtectedDomainsDomainIdRoute
   '/_protected/emails/$emailId': typeof ProtectedEmailsEmailIdRoute
+  '/_protected/inbox/$emailId': typeof ProtectedInboxEmailIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
 }
 export interface FileRouteTypes {
@@ -282,6 +309,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/domains'
     | '/emails'
+    | '/inbox'
+    | '/mailboxes'
     | '/send-test'
     | '/admin/activity'
     | '/admin/feedback'
@@ -296,6 +325,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/domains/$domainId'
     | '/emails/$emailId'
+    | '/inbox/$emailId'
     | '/admin/roles/$roleId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -310,6 +340,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/domains'
     | '/emails'
+    | '/inbox'
+    | '/mailboxes'
     | '/send-test'
     | '/admin/activity'
     | '/admin/feedback'
@@ -324,6 +356,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/domains/$domainId'
     | '/emails/$emailId'
+    | '/inbox/$emailId'
     | '/admin/roles/$roleId'
   id:
     | '__root__'
@@ -339,6 +372,8 @@ export interface FileRouteTypes {
     | '/_protected/dashboard'
     | '/_protected/domains'
     | '/_protected/emails'
+    | '/_protected/inbox'
+    | '/_protected/mailboxes'
     | '/_protected/send-test'
     | '/admin/activity'
     | '/admin/feedback'
@@ -354,6 +389,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/_protected/domains/$domainId'
     | '/_protected/emails/$emailId'
+    | '/_protected/inbox/$emailId'
     | '/admin/roles/$roleId'
   fileRoutesById: FileRoutesById
 }
@@ -497,6 +533,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedSendTestRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/mailboxes': {
+      id: '/_protected/mailboxes'
+      path: '/mailboxes'
+      fullPath: '/mailboxes'
+      preLoaderRoute: typeof ProtectedMailboxesRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/inbox': {
+      id: '/_protected/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof ProtectedInboxRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/emails': {
       id: '/_protected/emails'
       path: '/emails'
@@ -553,6 +603,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRolesRoleIdRouteImport
       parentRoute: typeof AdminRolesRoute
     }
+    '/_protected/inbox/$emailId': {
+      id: '/_protected/inbox/$emailId'
+      path: '/$emailId'
+      fullPath: '/inbox/$emailId'
+      preLoaderRoute: typeof ProtectedInboxEmailIdRouteImport
+      parentRoute: typeof ProtectedInboxRoute
+    }
     '/_protected/emails/$emailId': {
       id: '/_protected/emails/$emailId'
       path: '/$emailId'
@@ -593,12 +650,26 @@ const ProtectedEmailsRouteWithChildren = ProtectedEmailsRoute._addFileChildren(
   ProtectedEmailsRouteChildren,
 )
 
+interface ProtectedInboxRouteChildren {
+  ProtectedInboxEmailIdRoute: typeof ProtectedInboxEmailIdRoute
+}
+
+const ProtectedInboxRouteChildren: ProtectedInboxRouteChildren = {
+  ProtectedInboxEmailIdRoute: ProtectedInboxEmailIdRoute,
+}
+
+const ProtectedInboxRouteWithChildren = ProtectedInboxRoute._addFileChildren(
+  ProtectedInboxRouteChildren,
+)
+
 interface ProtectedRouteChildren {
   ProtectedAccountRoute: typeof ProtectedAccountRoute
   ProtectedApiKeysRoute: typeof ProtectedApiKeysRoute
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
   ProtectedDomainsRoute: typeof ProtectedDomainsRouteWithChildren
   ProtectedEmailsRoute: typeof ProtectedEmailsRouteWithChildren
+  ProtectedInboxRoute: typeof ProtectedInboxRouteWithChildren
+  ProtectedMailboxesRoute: typeof ProtectedMailboxesRoute
   ProtectedSendTestRoute: typeof ProtectedSendTestRoute
 }
 
@@ -608,6 +679,8 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedDashboardRoute: ProtectedDashboardRoute,
   ProtectedDomainsRoute: ProtectedDomainsRouteWithChildren,
   ProtectedEmailsRoute: ProtectedEmailsRouteWithChildren,
+  ProtectedInboxRoute: ProtectedInboxRouteWithChildren,
+  ProtectedMailboxesRoute: ProtectedMailboxesRoute,
   ProtectedSendTestRoute: ProtectedSendTestRoute,
 }
 

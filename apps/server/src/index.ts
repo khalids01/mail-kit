@@ -8,6 +8,7 @@ import { openapi } from "@elysiajs/openapi";
 import { enforceRateLimit } from "./modules/rate-limit/rate-limit.service";
 import { startVisitorFlushWorker } from "./modules/visitors/visitors.service";
 import { securityHeadersPlugin } from "./plugins/security-headers";
+import { startInboundSyncWorker } from "./modules/mail/mail.service";
 
 const shouldLogRequests = env.NODE_ENV === "development";
 const docsPlugin =
@@ -20,6 +21,7 @@ const docsPlugin =
 await connectRedis();
 console.log("Redis is ready");
 startVisitorFlushWorker();
+startInboundSyncWorker();
 
 const server = new Elysia()
   .use(securityHeadersPlugin({ production: env.NODE_ENV === "production" }))

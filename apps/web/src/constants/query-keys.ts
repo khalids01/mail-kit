@@ -68,6 +68,8 @@ export const queryKeys = {
         ["admin-mail-emails", params] as const,
       apiKeys: (params: { page: number; search: string }) =>
         ["admin-mail-api-keys", params] as const,
+      mailboxes: (params: { page: number; status: string; search: string }) =>
+        ["admin-mail-mailboxes", params] as const,
     },
   },
   mail: {
@@ -77,6 +79,16 @@ export const queryKeys = {
       detail: (domainId: string) => ["mail-domain", domainId] as const,
     },
     apiKeys: () => ["mail-api-keys"] as const,
+    mailboxes: () => ["mail-mailboxes"] as const,
+    inbox: {
+      list: (params: {
+        page: number;
+        status: string;
+        mailboxId: string;
+        search: string;
+      }) => ["mail-inbox", params] as const,
+      detail: (emailId: string) => ["mail-inbox-email", emailId] as const,
+    },
     emails: {
       list: (params: {
         page: number;

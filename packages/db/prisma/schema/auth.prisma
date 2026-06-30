@@ -23,6 +23,8 @@ model User {
   domains                Domain[]
   apiKeys                ApiKey[]
   emailMessages          EmailMessage[]
+  mailboxes              MailboxAddress[]
+  inboundEmails          InboundEmail[]
 
   // Polar Integration
   polarCustomerId    String?
