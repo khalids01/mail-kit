@@ -94,6 +94,18 @@ See [`docs/deploy-vps-mailu.md`](docs/deploy-vps-mailu.md) for the one-VPS deplo
 
 API-key sending and inbound message APIs are documented in [`docs/api.md`](docs/api.md). In development, OpenAPI is also exposed by the server at [`http://localhost:5005/docs`](http://localhost:5005/docs).
 
+After deploying to a VPS, run the readiness checker:
+
+```bash
+DOMAIN=example.com \
+MAIL_HOST=mail.example.com \
+VPS_IP=1.2.3.4 \
+DKIM_SELECTOR=dkim \
+./scripts/check-vps-mailu.sh
+```
+
+The script checks env values, Docker services, common ports, DNS records, PTR, and Mailu API reachability. Gmail/Outlook SPF, DKIM, and DMARC pass/fail still require sending a real message and inspecting the delivered headers.
+
 ## RBAC
 
 Permissions are defined in [`packages/rbac`](packages/rbac). The maps file is the seed default only; runtime authorization reads from PostgreSQL and Redis.

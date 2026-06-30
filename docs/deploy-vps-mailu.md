@@ -111,6 +111,33 @@ docker compose --env-file .env.production -f docker-compose.production.yml exec 
 docker compose --env-file .env.production -f docker-compose.production.yml exec server bun run db:seed
 ```
 
+## VPS Readiness Check
+
+Run the checker from the VPS after Mailu and Mail Kit are started:
+
+```bash
+DOMAIN=example.com \
+MAIL_HOST=mail.example.com \
+APP_HOST=app.example.com \
+API_HOST=api.example.com \
+VPS_IP=1.2.3.4 \
+DKIM_SELECTOR=dkim \
+MAILKIT_ENV=apps/server/.env.production \
+MAILU_ENV=deploy/mailu.env \
+./scripts/check-vps-mailu.sh
+```
+
+The script prints what is present and what is missing for:
+
+- Mailu containers and API settings.
+- Mail Kit Mailu/SMTP/IMAP env values.
+- TCP ports `25`, `465`, `587`, `993`, `80`, and `443`.
+- `A`, `MX`, `SPF`, `DKIM`, and `DMARC` DNS records.
+- VPS PTR / reverse DNS.
+- Mailu API reachability.
+
+It cannot fully prove Gmail/Outlook deliverability by itself. For that, send a real message from Mail Kit, open the delivered message headers in Gmail/Outlook, and confirm SPF, DKIM, and DMARC all pass.
+
 ## First Sending Test
 
 1. Create a domain in Mail Kit.
