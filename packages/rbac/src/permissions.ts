@@ -18,6 +18,8 @@ export const Permissions = {
   AdminRateLimitManage: "admin.rate_limit.manage",
   AdminMailRead: "admin.mail.read",
   AdminMailManage: "admin.mail.manage",
+  AdminMailboxesRead: "admin.mailboxes.read",
+  AdminMailboxesManage: "admin.mailboxes.manage",
 
   AdminRolesList: "admin.roles.list",
   AdminRolesRead: "admin.roles.read",
@@ -32,6 +34,10 @@ export const Permissions = {
 
   MailDomainsManage: "mail.domains.manage",
   MailApiKeysManage: "mail.api_keys.manage",
+  MailMailboxesManage: "mail.mailboxes.manage",
+  MailInboundRead: "mail.inbound.read",
+  MailInboundManage: "mail.inbound.manage",
+  MailEngineProvision: "mail.engine.provision",
   MailEmailsSend: "mail.emails.send",
   MailEmailsRead: "mail.emails.read",
 } as const;

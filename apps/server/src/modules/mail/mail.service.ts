@@ -6,6 +6,8 @@ import { env } from "@env/server";
 import { connectRedis } from "@redis/server";
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
+import { mailEngineService } from "./mail-engine.service";
+import { decryptSecret, encryptSecret } from "./mail-secrets";
 import type {
   AdminMailQuery,
   ApiKeyCreate,
@@ -182,7 +184,16 @@ async function enforceSendRateLimit(apiKeyId: string) {
 
 export class MailService {
   async getOverview(userId: string) {
-    const [domains, verifiedDomains, apiKeys, sentEmails, failedEmails, unreadInbound, recentEmails] =
+    const [
+      domains,
+      verifiedDomains,
+      apiKeys,
+      sentEmails,
+      failedEmails,
+      unreadInbound,
+      recentEmails,
+      recentInboundEmails,
+    ] =
       await Promise.all([
         prisma.domain.count({ where: { userId } }),
         prisma.domain.count({ where: { userId, status: "verified" } }),
@@ -196,9 +207,24 @@ export class MailService {
           take: 8,
           include: { domain: { select: { name: true } } },
         }),
+        prisma.inboundEmail.findMany({
+          where: { userId, status: { not: "deleted" } },
+          orderBy: { receivedAt: "desc" },
+          take: 8,
+          include: { mailbox: { select: { address: true } } },
+        }),
       ]);
 
-    return { domains, verifiedDomains, apiKeys, sentEmails, failedEmails, unreadInbound, recentEmails };
+    return {
+      domains,
+      verifiedDomains,
+      apiKeys,
+      sentEmails,
+      failedEmails,
+      unreadInbound,
+      recentEmails,
+      recentInboundEmails,
+    };
   }
 
   async listDomains(userId: string) {
@@ -212,12 +238,17 @@ export class MailService {
   async createDomain(userId: string, input: DomainCreate) {
     const name = normalizeDomainName(input.name);
     const records = buildDnsRecords(name);
+    const engine = await mailEngineService.provisionDomain(name);
 
     try {
       return await prisma.domain.create({
         data: {
           userId,
           name,
+          engineStatus: engine.status,
+          engineId: engine.engineId,
+          engineLastSyncAt: new Date(),
+          engineError: engine.error,
           dnsRecords: {
             create: records,
           },
@@ -255,6 +286,7 @@ export class MailService {
   async verifyDomain(id: string, name: string) {
     const dns = await verifyDns(name);
     const now = new Date();
+    const engine = await mailEngineService.provisionDomain(name);
 
     await Promise.all(
       Object.entries(dns).map(([purpose, ok]) =>
@@ -284,6 +316,10 @@ export class MailService {
         verificationStatus: requiredVerified ? "verified" : "failed",
         sendingEnabled: requiredVerified,
         suspendedAt: requiredVerified ? null : undefined,
+        engineStatus: engine.status,
+        engineId: engine.engineId,
+        engineLastSyncAt: now,
+        engineError: engine.error,
       },
       include: { dnsRecords: { orderBy: { createdAt: "asc" } } },
     });
@@ -344,12 +380,52 @@ export class MailService {
     });
   }
 
+  async authenticateApiKey(token: string | undefined) {
+    if (!token?.startsWith("mk_")) {
+      throw new MailPolicyError("Invalid API key", 401);
+    }
+    const apiKey = await prisma.apiKey.findUnique({
+      where: { hash: hashApiKey(token) },
+    });
+    if (!apiKey || apiKey.revokedAt) {
+      throw new MailPolicyError("Invalid API key", 401);
+    }
+    await prisma.apiKey.update({
+      where: { id: apiKey.id },
+      data: { lastUsedAt: new Date() },
+    });
+    return apiKey;
+  }
+
   async listMailboxes(userId: string) {
-    return prisma.mailboxAddress.findMany({
+    const mailboxes = await prisma.mailboxAddress.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      include: { domain: { select: { name: true, status: true } } },
+      select: {
+        id: true,
+        address: true,
+        localPart: true,
+        displayName: true,
+        status: true,
+        engineStatus: true,
+        engineLastSyncAt: true,
+        engineError: true,
+        mailuId: true,
+        imapUsername: true,
+        imapPassword: true,
+        lastUid: true,
+        lastSyncAt: true,
+        syncError: true,
+        disabledAt: true,
+        createdAt: true,
+        updatedAt: true,
+        domain: { select: { name: true, status: true } },
+      },
     });
+    return mailboxes.map(({ imapPassword, ...mailbox }) => ({
+      ...mailbox,
+      imapCredentials: imapPassword ? "configured" : "missing",
+    }));
   }
 
   async createMailbox(userId: string, input: MailboxCreate) {
@@ -362,6 +438,13 @@ export class MailService {
 
     const localPart = normalizeLocalPart(input.localPart);
     const address = `${localPart}@${domain.name}`;
+    const engine = await mailEngineService.provisionMailbox({
+      address,
+      localPart,
+      domain: domain.name,
+      password: input.imapPassword,
+      displayName: input.displayName,
+    });
 
     try {
       return await prisma.mailboxAddress.create({
@@ -371,10 +454,32 @@ export class MailService {
           address,
           localPart,
           displayName: input.displayName?.trim() || null,
+          engineStatus: engine.status,
+          mailuId: engine.engineId,
+          engineLastSyncAt: new Date(),
+          engineError: engine.error,
           imapUsername: input.imapUsername?.trim() || address,
-          imapPassword: input.imapPassword || null,
+          imapPassword: encryptSecret(input.imapPassword),
         },
-        include: { domain: { select: { name: true, status: true } } },
+        select: {
+          id: true,
+          address: true,
+          localPart: true,
+          displayName: true,
+          status: true,
+          engineStatus: true,
+          engineLastSyncAt: true,
+          engineError: true,
+          mailuId: true,
+          imapUsername: true,
+          lastUid: true,
+          lastSyncAt: true,
+          syncError: true,
+          disabledAt: true,
+          createdAt: true,
+          updatedAt: true,
+          domain: { select: { name: true, status: true } },
+        },
       });
     } catch {
       throw new MailPolicyError("Mailbox address already exists for your account");
@@ -406,7 +511,8 @@ export class MailService {
     if (!env.MAIL_ENGINE_IMAP_HOST) {
       throw new MailPolicyError("MAIL_ENGINE_IMAP_HOST is not configured", 400);
     }
-    if (!mailbox.imapUsername || !mailbox.imapPassword) {
+    const imapPassword = decryptSecret(mailbox.imapPassword);
+    if (!mailbox.imapUsername || !imapPassword) {
       throw new MailPolicyError("Mailbox IMAP credentials are missing", 400);
     }
 
@@ -416,7 +522,7 @@ export class MailService {
       secure: env.MAIL_ENGINE_IMAP_SECURE,
       auth: {
         user: mailbox.imapUsername,
-        pass: mailbox.imapPassword,
+        pass: imapPassword,
       },
       logger: false,
     });
@@ -565,6 +671,38 @@ export class MailService {
     });
   }
 
+  async listInboundEmailsWithApiKey(token: string | undefined, query: InboundEmailQuery) {
+    const apiKey = await this.authenticateApiKey(token);
+    return this.listInboundEmails(apiKey.userId, query);
+  }
+
+  async getInboundEmailWithApiKey(token: string | undefined, id: string) {
+    const apiKey = await this.authenticateApiKey(token);
+    const email = await this.getInboundEmail(apiKey.userId, id);
+    if (!email) {
+      throw new MailPolicyError("Inbound email not found", 404);
+    }
+    return email;
+  }
+
+  async updateInboundEmailWithApiKey(
+    token: string | undefined,
+    id: string,
+    input: InboundEmailUpdate,
+  ) {
+    const apiKey = await this.authenticateApiKey(token);
+    return this.updateInboundEmail(apiKey.userId, id, input);
+  }
+
+  async replyToInboundEmailWithApiKey(
+    token: string | undefined,
+    id: string,
+    input: InboundReply,
+  ) {
+    const apiKey = await this.authenticateApiKey(token);
+    return this.replyToInboundEmail(apiKey.userId, id, input);
+  }
+
   async replyToInboundEmail(userId: string, id: string, input: InboundReply) {
     if (!input.html && !input.text) {
       throw new MailPolicyError("Either html or text is required");
@@ -685,19 +823,11 @@ export class MailService {
   }
 
   async sendWithApiKey(token: string | undefined, input: EmailSend) {
-    if (!token?.startsWith("mk_")) {
-      throw new MailPolicyError("Invalid API key", 401);
-    }
     if (!input.html && !input.text) {
       throw new MailPolicyError("Either html or text is required");
     }
 
-    const apiKey = await prisma.apiKey.findUnique({
-      where: { hash: hashApiKey(token) },
-    });
-    if (!apiKey || apiKey.revokedAt) {
-      throw new MailPolicyError("Invalid API key", 401);
-    }
+    const apiKey = await this.authenticateApiKey(token);
     await enforceSendRateLimit(apiKey.id);
 
     const fromDomain = extractDomainFromEmail(input.from);
@@ -717,11 +847,6 @@ export class MailService {
     if (domain.suspendedAt) {
       throw new MailPolicyError("Sender domain is suspended", 403);
     }
-
-    await prisma.apiKey.update({
-      where: { id: apiKey.id },
-      data: { lastUsedAt: new Date() },
-    });
 
     const email = await prisma.emailMessage.create({
       data: {
@@ -879,6 +1004,42 @@ export class MailService {
     return { items, total, page, limit, pages: Math.max(1, Math.ceil(total / limit)) };
   }
 
+  async listAdminInboundEmails(query: AdminMailQuery) {
+    const { page, limit, skip } = pageArgs(query);
+    const where = {
+      ...(query.status ? { status: query.status as any } : {}),
+      ...(query.search
+        ? {
+            OR: [
+              { subject: { contains: query.search, mode: "insensitive" as const } },
+              { toAddress: { contains: query.search, mode: "insensitive" as const } },
+              { fromAddress: { contains: query.search, mode: "insensitive" as const } },
+              { user: { email: { contains: query.search, mode: "insensitive" as const } } },
+              { mailbox: { address: { contains: query.search, mode: "insensitive" as const } } },
+            ],
+          }
+        : {}),
+    };
+
+    const [items, total] = await Promise.all([
+      prisma.inboundEmail.findMany({
+        where,
+        orderBy: { receivedAt: "desc" },
+        skip,
+        take: limit,
+        include: {
+          user: { select: { email: true, name: true } },
+          domain: { select: { name: true } },
+          mailbox: { select: { address: true } },
+        },
+      }),
+      prisma.inboundEmail.count({ where }),
+    ]);
+
+    return { items, total, page, limit, pages: Math.max(1, Math.ceil(total / limit)) };
+  }
+
+
   async listAdminApiKeys(query: AdminMailQuery) {
     const { page, limit, skip } = pageArgs(query);
     const where = {
@@ -936,7 +1097,24 @@ export class MailService {
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,
-        include: {
+        select: {
+          id: true,
+          address: true,
+          localPart: true,
+          displayName: true,
+          status: true,
+          engineStatus: true,
+          engineLastSyncAt: true,
+          engineError: true,
+          mailuId: true,
+          imapUsername: true,
+          imapPassword: true,
+          lastUid: true,
+          lastSyncAt: true,
+          syncError: true,
+          disabledAt: true,
+          createdAt: true,
+          updatedAt: true,
           user: { select: { email: true, name: true } },
           domain: { select: { name: true, status: true } },
           _count: { select: { inboundEmails: true } },
@@ -945,7 +1123,16 @@ export class MailService {
       prisma.mailboxAddress.count({ where }),
     ]);
 
-    return { items, total, page, limit, pages: Math.max(1, Math.ceil(total / limit)) };
+    return {
+      items: items.map(({ imapPassword, ...mailbox }) => ({
+        ...mailbox,
+        imapCredentials: imapPassword ? "configured" : "missing",
+      })),
+      total,
+      page,
+      limit,
+      pages: Math.max(1, Math.ceil(total / limit)),
+    };
   }
 
   async suspendDomain(id: string) {
@@ -982,12 +1169,38 @@ export class MailService {
     return this.verifyDomain(domain.id, domain.name);
   }
 
+  async provisionDomainForAdmin(id: string) {
+    const domain = await prisma.domain.findUnique({ where: { id } });
+    if (!domain) {
+      throw new MailPolicyError("Domain not found", 404);
+    }
+    const engine = await mailEngineService.provisionDomain(domain.name);
+    return prisma.domain.update({
+      where: { id },
+      data: {
+        engineStatus: engine.status,
+        engineId: engine.engineId,
+        engineLastSyncAt: new Date(),
+        engineError: engine.error,
+      },
+      include: { dnsRecords: { orderBy: { createdAt: "asc" } } },
+    });
+  }
+
   async disableMailbox(id: string) {
+    const mailbox = await prisma.mailboxAddress.findUnique({ where: { id } });
+    if (!mailbox) {
+      throw new MailPolicyError("Mailbox not found", 404);
+    }
+    const engine = await mailEngineService.disableMailbox(mailbox.address);
     return prisma.mailboxAddress.update({
       where: { id },
       data: {
         status: "disabled",
         disabledAt: new Date(),
+        engineStatus: engine.status,
+        engineLastSyncAt: new Date(),
+        engineError: engine.error,
       },
       include: { domain: { select: { name: true, status: true } } },
     });

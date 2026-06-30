@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, AlertTriangle, Globe2, KeyRound, MailCheck } from "lucide-react";
+import { Activity, AlertTriangle, Globe2, Inbox, KeyRound, MailCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ type Overview = {
   apiKeys: number;
   sentEmails: number;
   failedEmails: number;
+  unreadInbound: number;
   recentEmails: Array<{
     id: string;
     fromAddress: string;
@@ -25,6 +26,15 @@ type Overview = {
     status: "queued" | "sent" | "failed";
     createdAt: string;
     domain?: { name: string } | null;
+  }>;
+  recentInboundEmails: Array<{
+    id: string;
+    fromAddress: string;
+    toAddress: string;
+    subject: string;
+    status: "unread" | "read" | "archived" | "deleted";
+    receivedAt: string;
+    mailbox?: { address: string } | null;
   }>;
 };
 
@@ -42,6 +52,7 @@ function RouteComponent() {
     { title: "Domains", value: data?.domains ?? 0, icon: Globe2 },
     { title: "Verified", value: data?.verifiedDomains ?? 0, icon: MailCheck },
     { title: "API Keys", value: data?.apiKeys ?? 0, icon: KeyRound },
+    { title: "Unread", value: data?.unreadInbound ?? 0, icon: Inbox },
     { title: "Failed", value: data?.failedEmails ?? 0, icon: AlertTriangle },
   ];
 
@@ -64,7 +75,7 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         {metrics.map((metric) => (
           <Card key={metric.title}>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -80,6 +91,7 @@ function RouteComponent() {
         ))}
       </div>
 
+      <div className="grid gap-4 xl:grid-cols-2">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent email activity</CardTitle>
@@ -117,6 +129,44 @@ function RouteComponent() {
           )}
         </CardContent>
       </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Recent inbound mail</CardTitle>
+          <Button variant="outline" size="sm" render={<Link to="/inbox" />}>
+            Open inbox
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+          {data?.recentInboundEmails?.length ? (
+            <div className="divide-y">
+              {data.recentInboundEmails.map((email) => (
+                <Link
+                  key={email.id}
+                  to="/inbox/$emailId"
+                  params={{ emailId: email.id }}
+                  className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-muted/50"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">{email.subject}</div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {email.fromAddress} {"->"} {email.toAddress}
+                    </div>
+                  </div>
+                  <Badge variant={email.status === "unread" ? "default" : "outline"}>
+                    {email.status}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2 px-4 py-10 text-center text-sm text-muted-foreground">
+              <Inbox className="h-5 w-5" />
+              No inbound mail yet.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      </div>
     </div>
   );
 }

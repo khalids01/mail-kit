@@ -90,7 +90,9 @@ VITE_SERVER_URL=http://localhost:5005
 
 The first production target uses Mailu as the hidden mail engine and Mail Kit as the product UI/API.
 
-See [`docs/deploy-vps-mailu.md`](docs/deploy-vps-mailu.md) for the one-VPS deployment flow, required DNS records, Mailu SMTP/IMAP wiring, and sending/receiving tests.
+See [`docs/deploy-vps-mailu.md`](docs/deploy-vps-mailu.md) for the one-VPS deployment flow, required DNS records, Mailu SMTP/IMAP/API wiring, and sending/receiving tests.
+
+API-key sending and inbound message APIs are documented in [`docs/api.md`](docs/api.md). In development, OpenAPI is also exposed by the server at [`http://localhost:5005/docs`](http://localhost:5005/docs).
 
 ## RBAC
 

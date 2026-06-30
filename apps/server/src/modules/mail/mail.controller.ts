@@ -57,6 +57,75 @@ export const mailController = new Elysia({
       detail: { summary: "Send an email with a Mail Kit API key" },
     },
   )
+  .get(
+    "/inbound/emails",
+    async ({ headers, query, set }) => {
+      try {
+        return await mailService.listInboundEmailsWithApiKey(
+          bearerToken(headers.authorization),
+          query,
+        );
+      } catch (error) {
+        return handleMailError(error, set);
+      }
+    },
+    {
+      query: InboundEmailQueryDto,
+      detail: { summary: "List inbound emails with a Mail Kit API key" },
+    },
+  )
+  .get(
+    "/inbound/emails/:id",
+    async ({ headers, params: { id }, set }) => {
+      try {
+        return await mailService.getInboundEmailWithApiKey(
+          bearerToken(headers.authorization),
+          id,
+        );
+      } catch (error) {
+        return handleMailError(error, set);
+      }
+    },
+    {
+      detail: { summary: "Get an inbound email with a Mail Kit API key" },
+    },
+  )
+  .post(
+    "/inbound/emails/:id/status",
+    async ({ headers, params: { id }, body, set }) => {
+      try {
+        return await mailService.updateInboundEmailWithApiKey(
+          bearerToken(headers.authorization),
+          id,
+          body,
+        );
+      } catch (error) {
+        return handleMailError(error, set);
+      }
+    },
+    {
+      body: InboundEmailUpdateDto,
+      detail: { summary: "Update inbound email status with a Mail Kit API key" },
+    },
+  )
+  .post(
+    "/inbound/emails/:id/reply",
+    async ({ headers, params: { id }, body, set }) => {
+      try {
+        return await mailService.replyToInboundEmailWithApiKey(
+          bearerToken(headers.authorization),
+          id,
+          body,
+        );
+      } catch (error) {
+        return handleMailError(error, set);
+      }
+    },
+    {
+      body: InboundReplyDto,
+      detail: { summary: "Reply to an inbound email with a Mail Kit API key" },
+    },
+  )
   .use(authGuard)
   .get("/mail/overview", ({ userId, set }) => {
     if (!userId) {
@@ -129,7 +198,7 @@ export const mailController = new Elysia({
         }),
   )
   .guard(
-    { beforeHandle: requirePermission(Permissions.MailDomainsManage) },
+    { beforeHandle: requirePermission(Permissions.MailMailboxesManage) },
     (app) =>
       app
         .get("/mailboxes", ({ userId }) => mailService.listMailboxes(userId!))
@@ -167,6 +236,11 @@ export const mailController = new Elysia({
           }
           return email;
         })
+  )
+  .guard(
+    { beforeHandle: requirePermission(Permissions.MailInboundRead) },
+    (app) =>
+      app
         .get("/inbox", ({ userId, query }) => mailService.listInboundEmails(userId!, query), {
           query: InboundEmailQueryDto,
         })
@@ -177,7 +251,12 @@ export const mailController = new Elysia({
             return { message: "Inbound email not found" };
           }
           return email;
-        })
+        }),
+  )
+  .guard(
+    { beforeHandle: requirePermission(Permissions.MailInboundManage) },
+    (app) =>
+      app
         .post(
           "/inbox/:id/status",
           async ({ userId, params: { id }, body, set }) => {

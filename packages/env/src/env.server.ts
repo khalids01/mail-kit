@@ -3,9 +3,11 @@ import dotenv from "dotenv";
 import path from "node:path";
 import { z } from "zod";
 
-dotenv.config({
-  path: path.resolve(import.meta.dir, "../../../apps/server/.env"),
-});
+if (process.env.NODE_ENV !== "test") {
+  dotenv.config({
+    path: path.resolve(import.meta.dir, "../../../apps/server/.env"),
+  });
+}
 
 export const env = createEnv({
   server: {
@@ -41,6 +43,7 @@ export const env = createEnv({
     EMAIL_FROM: z.string().optional(),
     MAIL_ENGINE_API_URL: z.string().url().optional(),
     MAIL_ENGINE_API_TOKEN: z.string().optional(),
+    MAIL_ENGINE_MODE: z.enum(["manual", "mailu"]).default("manual"),
     MAIL_ENGINE_IMAP_HOST: z.string().optional(),
     MAIL_ENGINE_IMAP_PORT: z.string().optional(),
     MAIL_ENGINE_IMAP_SECURE: z
@@ -53,6 +56,7 @@ export const env = createEnv({
       .transform((val) => val === "true"),
     MAIL_ENGINE_SYNC_INTERVAL_SECONDS: z.coerce.number().int().positive().default(300),
     MAIL_ENGINE_SEND_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(60),
+    MAILBOX_SECRET_KEY: z.string().min(32).optional(),
   },
   runtimeEnv: {
     ...process.env,

@@ -30,6 +30,13 @@ enum MailboxStatus {
   sync_failed
 }
 
+enum MailEngineStatus {
+  manual
+  pending
+  provisioned
+  failed
+}
+
 model Domain {
   id                 String       @id @default(cuid())
   userId             String
@@ -39,6 +46,10 @@ model Domain {
   verificationStatus DomainStatus @default(pending)
   sendingEnabled     Boolean      @default(false)
   suspendedAt        DateTime?
+  engineStatus       MailEngineStatus @default(manual)
+  engineId           String?
+  engineLastSyncAt   DateTime?
+  engineError        String?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
@@ -50,6 +61,7 @@ model Domain {
   @@unique([userId, name])
   @@index([status, createdAt])
   @@index([userId, createdAt])
+  @@index([engineStatus, updatedAt])
   @@map("domain")
 }
 
@@ -138,9 +150,12 @@ model MailboxAddress {
   localPart     String
   displayName   String?
   status        MailboxStatus @default(active)
+  engineStatus  MailEngineStatus @default(manual)
   mailuId       String?
   imapUsername  String?
   imapPassword  String?
+  engineLastSyncAt DateTime?
+  engineError    String?
   lastUid       Int?
   lastSyncAt    DateTime?
   syncError     String?
@@ -153,6 +168,7 @@ model MailboxAddress {
   @@unique([userId, address])
   @@index([domainId, address])
   @@index([status, updatedAt])
+  @@index([engineStatus, updatedAt])
   @@map("mailbox_address")
 }
 

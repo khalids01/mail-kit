@@ -30,12 +30,19 @@ export const adminMailController = new Elysia({
   .get("/emails", ({ query }) => mailService.listAdminEmails(query), {
     query: AdminMailQueryDto,
   })
+  .get("/inbound", ({ query }) => mailService.listAdminInboundEmails(query), {
+    query: AdminMailQueryDto,
+  })
   .get("/api-keys", ({ query }) => mailService.listAdminApiKeys(query), {
     query: AdminMailQueryDto,
   })
-  .get("/mailboxes", ({ query }) => mailService.listAdminMailboxes(query), {
-    query: AdminMailQueryDto,
-  })
+  .guard(
+    { beforeHandle: requirePermission(Permissions.AdminMailboxesRead) },
+    (app) =>
+      app.get("/mailboxes", ({ query }) => mailService.listAdminMailboxes(query), {
+        query: AdminMailQueryDto,
+      }),
+  )
   .guard(
     { beforeHandle: requirePermission(Permissions.AdminMailManage) },
     (app) =>
@@ -61,6 +68,18 @@ export const adminMailController = new Elysia({
             return handleMailError(error, set);
           }
         })
+        .post("/domains/:id/provision", async ({ params: { id }, set }) => {
+          try {
+            return await mailService.provisionDomainForAdmin(id);
+          } catch (error) {
+            return handleMailError(error, set);
+          }
+        }),
+  )
+  .guard(
+    { beforeHandle: requirePermission(Permissions.AdminMailboxesManage) },
+    (app) =>
+      app
         .post("/mailboxes/:id/sync", async ({ params: { id }, set }) => {
           try {
             return await mailService.syncMailbox(id);

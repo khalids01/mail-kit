@@ -51,6 +51,7 @@ function AdminMailPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="domains">Domains</TabsTrigger>
           <TabsTrigger value="emails">Email Logs</TabsTrigger>
+          <TabsTrigger value="inbound">Inbound</TabsTrigger>
           <TabsTrigger value="mailboxes">Mailboxes</TabsTrigger>
           <TabsTrigger value="api-keys">API Keys</TabsTrigger>
         </TabsList>
@@ -62,6 +63,9 @@ function AdminMailPage() {
         </TabsContent>
         <TabsContent value="emails">
           <AdminEmails />
+        </TabsContent>
+        <TabsContent value="inbound">
+          <AdminInboundEmails />
         </TabsContent>
         <TabsContent value="mailboxes">
           <AdminMailboxes canManage={canManage} />
@@ -132,10 +136,12 @@ function AdminDomains({ canManage }: { canManage: boolean }) {
   });
 
   const mutateDomain = useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: "verify" | "suspend" | "unsuspend" }) => {
+    mutationFn: async ({ id, action }: { id: string; action: "verify" | "provision" | "suspend" | "unsuspend" }) => {
       const request =
         action === "verify"
           ? client.admin.mail.domains({ id }).verify.post()
+          : action === "provision"
+            ? client.admin.mail.domains({ id }).provision.post()
           : action === "suspend"
             ? client.admin.mail.domains({ id }).suspend.post()
             : client.admin.mail.domains({ id }).unsuspend.post();
@@ -170,24 +176,29 @@ function AdminDomains({ canManage }: { canManage: boolean }) {
               <TableHead>Domain</TableHead>
               <TableHead>Owner</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Engine</TableHead>
               <TableHead>Sending</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={5}>Loading domains...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6}>Loading domains...</TableCell></TableRow>
             ) : data?.items?.length ? (
               data.items.map((domain: any) => (
                 <TableRow key={domain.id}>
                   <TableCell className="font-medium">{domain.name}</TableCell>
                   <TableCell>{domain.user.email}</TableCell>
                   <TableCell><StatusBadge status={domain.status} /></TableCell>
+                  <TableCell><StatusBadge status={domain.engineStatus || "manual"} /></TableCell>
                   <TableCell>{domain.sendingEnabled ? "Enabled" : "Disabled"}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" size="sm" disabled={!canManage} onClick={() => mutateDomain.mutate({ id: domain.id, action: "verify" })}>
                         <RefreshCw className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" disabled={!canManage} onClick={() => mutateDomain.mutate({ id: domain.id, action: "provision" })}>
+                        <Globe2 className="h-4 w-4" />
                       </Button>
                       {domain.suspendedAt ? (
                         <Button variant="outline" size="sm" disabled={!canManage} onClick={() => mutateDomain.mutate({ id: domain.id, action: "unsuspend" })}>
@@ -203,7 +214,7 @@ function AdminDomains({ canManage }: { canManage: boolean }) {
                 </TableRow>
               ))
             ) : (
-              <TableRow><TableCell colSpan={5}>No domains found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6}>No domains found.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -274,6 +285,70 @@ function AdminEmails() {
   );
 }
 
+function AdminInboundEmails() {
+  const { object: filters, setObjectValue } = useObject({ page: 1, status: "", search: "" });
+  const queryParams = { page: filters.page, status: filters.status, search: filters.search };
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.admin.mail.inbound(queryParams),
+    queryFn: async () => {
+      const { data, error } = await client.admin.mail.inbound.get({
+        query: {
+          page: filters.page,
+          status: filters.status || undefined,
+          search: filters.search || undefined,
+        },
+      });
+      if (error) throw new Error("Failed to load inbound messages");
+      return data as any;
+    },
+  });
+
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle>Inbound Messages</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Input
+          value={filters.search}
+          placeholder="Search subject, owner, mailbox, or address"
+          onChange={(event) => setObjectValue("search", event.target.value)}
+        />
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Subject</TableHead>
+              <TableHead>Owner</TableHead>
+              <TableHead>Mailbox</TableHead>
+              <TableHead>Route</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Received</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow><TableCell colSpan={6}>Loading inbound messages...</TableCell></TableRow>
+            ) : data?.items?.length ? (
+              data.items.map((email: any) => (
+                <TableRow key={email.id}>
+                  <TableCell className="max-w-[260px] truncate font-medium">{email.subject}</TableCell>
+                  <TableCell>{email.user.email}</TableCell>
+                  <TableCell>{email.mailbox?.address ?? "Unmapped"}</TableCell>
+                  <TableCell className="max-w-[320px] truncate">{email.fromAddress} {"->"} {email.toAddress}</TableCell>
+                  <TableCell><StatusBadge status={email.status} /></TableCell>
+                  <TableCell>{formatDate(email.receivedAt)}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow><TableCell colSpan={6}>No inbound messages found.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
 function AdminMailboxes({ canManage }: { canManage: boolean }) {
   const queryClient = useQueryClient();
   const { object: filters, setObjectValue } = useObject({ page: 1, status: "", search: "" });
@@ -333,13 +408,15 @@ function AdminMailboxes({ canManage }: { canManage: boolean }) {
               <TableHead>Owner</TableHead>
               <TableHead>Domain</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Engine</TableHead>
+              <TableHead>IMAP</TableHead>
               <TableHead>Last sync</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={6}>Loading mailboxes...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8}>Loading mailboxes...</TableCell></TableRow>
             ) : data?.items?.length ? (
               data.items.map((mailbox: any) => (
                 <TableRow key={mailbox.id}>
@@ -347,6 +424,8 @@ function AdminMailboxes({ canManage }: { canManage: boolean }) {
                   <TableCell>{mailbox.user.email}</TableCell>
                   <TableCell>{mailbox.domain.name}</TableCell>
                   <TableCell><StatusBadge status={mailbox.status} /></TableCell>
+                  <TableCell><StatusBadge status={mailbox.engineStatus || "manual"} /></TableCell>
+                  <TableCell>{mailbox.imapCredentials ?? "missing"}</TableCell>
                   <TableCell>{mailbox.lastSyncAt ? formatDate(mailbox.lastSyncAt) : "Never"}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
@@ -367,7 +446,7 @@ function AdminMailboxes({ canManage }: { canManage: boolean }) {
                 </TableRow>
               ))
             ) : (
-              <TableRow><TableCell colSpan={6}>No mailboxes found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8}>No mailboxes found.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>

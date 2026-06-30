@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
+import { Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,17 @@ function DomainDetailPage() {
           <p className="text-sm text-muted-foreground">
             {domain.sendingEnabled ? "Sending is enabled for this domain." : "Verify DNS records to enable sending."}
           </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Badge variant={domain.engineStatus === "failed" ? "destructive" : "outline"}>
+              Engine: {domain.engineStatus || "manual"}
+            </Badge>
+            {domain.engineLastSyncAt ? (
+              <Badge variant="outline">Engine sync: {formatDate(domain.engineLastSyncAt)}</Badge>
+            ) : null}
+          </div>
+          {domain.engineError ? (
+            <p className="mt-2 text-sm text-destructive">{domain.engineError}</p>
+          ) : null}
         </div>
         <Button className="gap-2" disabled={verify.isPending} onClick={() => verify.mutate()}>
           <RefreshCw className="h-4 w-4" />
@@ -71,6 +82,7 @@ function DomainDetailPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="text-right">Copy</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -84,6 +96,19 @@ function DomainDetailPage() {
                       {record.status}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        navigator.clipboard.writeText(record.value);
+                        toast.success("DNS value copied");
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -92,4 +117,8 @@ function DomainDetailPage() {
       </Card>
     </div>
   );
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }

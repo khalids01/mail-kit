@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Permissions, RolePermissionMap, Roles } from "@rbac";
+import { decryptSecret, encryptSecret } from "../src/modules/mail/mail-secrets";
 import { buildDnsRecords, hashApiKey } from "../src/modules/mail/mail.service";
 
 describe("mail v1 RBAC", () => {
@@ -9,6 +10,15 @@ describe("mail v1 RBAC", () => {
     );
     expect(RolePermissionMap[Roles.PlatformUser]).toContain(
       Permissions.MailApiKeysManage,
+    );
+    expect(RolePermissionMap[Roles.PlatformUser]).toContain(
+      Permissions.MailMailboxesManage,
+    );
+    expect(RolePermissionMap[Roles.PlatformUser]).toContain(
+      Permissions.MailInboundRead,
+    );
+    expect(RolePermissionMap[Roles.PlatformUser]).toContain(
+      Permissions.MailInboundManage,
     );
     expect(RolePermissionMap[Roles.PlatformUser]).toContain(
       Permissions.MailEmailsSend,
@@ -22,8 +32,20 @@ describe("mail v1 RBAC", () => {
     expect(RolePermissionMap[Roles.PlatformAdmin]).toContain(
       Permissions.AdminMailRead,
     );
+    expect(RolePermissionMap[Roles.PlatformAdmin]).toContain(
+      Permissions.AdminMailboxesRead,
+    );
+    expect(RolePermissionMap[Roles.PlatformAdmin]).not.toContain(
+      Permissions.AdminMailManage,
+    );
+    expect(RolePermissionMap[Roles.PlatformAdmin]).not.toContain(
+      Permissions.AdminMailboxesManage,
+    );
     expect(RolePermissionMap[Roles.PlatformOwner]).toContain(
       Permissions.AdminMailManage,
+    );
+    expect(RolePermissionMap[Roles.PlatformOwner]).toContain(
+      Permissions.AdminMailboxesManage,
     );
   });
 });
@@ -56,5 +78,13 @@ describe("mail v1 helpers", () => {
     expect(records.find((record) => record.purpose === "dmarc")?.name).toBe(
       "_dmarc",
     );
+  });
+
+  it("encrypts mailbox secrets before storage and decrypts them for IMAP", () => {
+    const encrypted = encryptSecret("mailbox-password");
+
+    expect(encrypted?.startsWith("enc:v1:")).toBe(true);
+    expect(encrypted).not.toContain("mailbox-password");
+    expect(decryptSecret(encrypted)).toBe("mailbox-password");
   });
 });

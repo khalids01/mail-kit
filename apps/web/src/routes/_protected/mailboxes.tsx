@@ -32,7 +32,11 @@ type MailboxAddress = {
   address: string;
   displayName: string | null;
   status: string;
+  engineStatus: string;
+  engineLastSyncAt: string | null;
+  engineError: string | null;
   imapUsername: string | null;
+  imapCredentials: "configured" | "missing";
   lastSyncAt: string | null;
   syncError: string | null;
   domain: { name: string; status: string };
@@ -175,10 +179,16 @@ function MailboxesPage() {
                       <Badge variant={mailbox.status === "sync_failed" || mailbox.status === "disabled" ? "destructive" : "outline"}>
                         {mailbox.status}
                       </Badge>
+                      <Badge variant={mailbox.engineStatus === "failed" ? "destructive" : "outline"}>
+                        {mailbox.engineStatus}
+                      </Badge>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {mailbox.imapUsername || "No IMAP username"} · Last sync {mailbox.lastSyncAt ? formatDate(mailbox.lastSyncAt) : "never"}
+                      {mailbox.imapUsername || "No IMAP username"} · IMAP {mailbox.imapCredentials} · Last sync {mailbox.lastSyncAt ? formatDate(mailbox.lastSyncAt) : "never"}
                     </p>
+                    {mailbox.engineError ? (
+                      <p className="mt-1 text-xs text-destructive">{mailbox.engineError}</p>
+                    ) : null}
                     {mailbox.syncError ? (
                       <p className="mt-1 text-xs text-destructive">{mailbox.syncError}</p>
                     ) : null}

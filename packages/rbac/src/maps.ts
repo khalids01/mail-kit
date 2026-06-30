@@ -7,7 +7,10 @@ const adminPermissions = AllPermissions.filter(
 ) as Permission[];
 
 const platformAdminPermissions = adminPermissions.filter(
-  (permission) => !permission.startsWith("admin.roles."),
+  (permission) =>
+    !permission.startsWith("admin.roles.") &&
+    permission !== Permissions.AdminMailManage &&
+    permission !== Permissions.AdminMailboxesManage,
 ) as Permission[];
 
 const platformUserPermissions = [
@@ -15,6 +18,10 @@ const platformUserPermissions = [
   Permissions.NotificationsUse,
   Permissions.MailDomainsManage,
   Permissions.MailApiKeysManage,
+  Permissions.MailMailboxesManage,
+  Permissions.MailInboundRead,
+  Permissions.MailInboundManage,
+  Permissions.MailEngineProvision,
   Permissions.MailEmailsSend,
   Permissions.MailEmailsRead,
 ] as const satisfies readonly Permission[];

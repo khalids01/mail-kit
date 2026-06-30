@@ -66,6 +66,8 @@ export const queryKeys = {
         ["admin-mail-domains", params] as const,
       emails: (params: { page: number; status: string; search: string }) =>
         ["admin-mail-emails", params] as const,
+      inbound: (params: { page: number; status: string; search: string }) =>
+        ["admin-mail-inbound", params] as const,
       apiKeys: (params: { page: number; search: string }) =>
         ["admin-mail-api-keys", params] as const,
       mailboxes: (params: { page: number; status: string; search: string }) =>
