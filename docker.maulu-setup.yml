@@ -1,0 +1,108 @@
+# Mailu engine setup for Mail Kit.
+#
+# This file intentionally follows the shape of Mailu's Docker Compose setup:
+# - Mailu owns SMTP/IMAP/mail storage.
+# - Mail Kit owns product UI/API/users/logs.
+#
+# Generate deploy/mailu.env with:
+#   DOMAIN=example.com MAIL_HOST=mail.example.com ./scripts/mailu-setup.sh
+#
+# Note: this standalone Mailu setup binds 80 and 443 for Mailu's HTTP API,
+# admin surface, and certificate handling. Do not run another public reverse
+# proxy on 80/443 at the same time unless you intentionally adapt the proxy
+# layout.
+
+services:
+  front:
+    image: mailu/nginx:${VERSION:-2024.06}
+    container_name: mailu-front
+    restart: unless-stopped
+    env_file:
+      - ${MAILU_ENV_FILE:-deploy/mailu.env}
+    ports:
+      - "${BIND_ADDRESS4:-0.0.0.0}:80:80"
+      - "${BIND_ADDRESS4:-0.0.0.0}:443:443"
+      - "${BIND_ADDRESS4:-0.0.0.0}:25:25"
+      - "${BIND_ADDRESS4:-0.0.0.0}:465:465"
+      - "${BIND_ADDRESS4:-0.0.0.0}:587:587"
+      - "${BIND_ADDRESS4:-0.0.0.0}:993:993"
+    volumes:
+      - "${ROOT:-/opt/mailu}/certs:/certs"
+      - "${ROOT:-/opt/mailu}/overrides/nginx:/overrides:ro"
+  redis:
+    image: redis:7-alpine
+    container_name: mailu-redis
+    restart: unless-stopped
+    volumes:
+      - "${ROOT:-/opt/mailu}/redis:/data"
+
+  admin:
+    image: mailu/admin:${VERSION:-2024.06}
+    container_name: mailu-admin
+    restart: unless-stopped
+    env_file:
+      - ${MAILU_ENV_FILE:-deploy/mailu.env}
+    volumes:
+      - "${ROOT:-/opt/mailu}/data:/data"
+      - "${ROOT:-/opt/mailu}/dkim:/dkim"
+    depends_on:
+      - redis
+
+  imap:
+    image: mailu/dovecot:${VERSION:-2024.06}
+    container_name: mailu-imap
+    restart: unless-stopped
+    env_file:
+      - ${MAILU_ENV_FILE:-deploy/mailu.env}
+    volumes:
+      - "${ROOT:-/opt/mailu}/mail:/mail"
+      - "${ROOT:-/opt/mailu}/overrides/dovecot:/overrides:ro"
+    depends_on:
+      - front
+
+  smtp:
+    image: mailu/postfix:${VERSION:-2024.06}
+    container_name: mailu-smtp
+    restart: unless-stopped
+    env_file:
+      - ${MAILU_ENV_FILE:-deploy/mailu.env}
+    volumes:
+      - "${ROOT:-/opt/mailu}/mailqueue:/queue"
+      - "${ROOT:-/opt/mailu}/overrides/postfix:/overrides:ro"
+    depends_on:
+      - front
+
+  antispam:
+    image: mailu/rspamd:${VERSION:-2024.06}
+    container_name: mailu-antispam
+    restart: unless-stopped
+    env_file:
+      - ${MAILU_ENV_FILE:-deploy/mailu.env}
+    volumes:
+      - "${ROOT:-/opt/mailu}/filter:/var/lib/rspamd"
+      - "${ROOT:-/opt/mailu}/dkim:/dkim:ro"
+      - "${ROOT:-/opt/mailu}/overrides/rspamd:/etc/rspamd/override.d:ro"
+    depends_on:
+      - front
+
+  # Optional and RAM-heavy. Enable with:
+  #   docker compose --env-file deploy/mailu.env -f docker.maulu-setup.yml --profile antivirus up -d
+  antivirus:
+    image: mailu/clamav:${VERSION:-2024.06}
+    container_name: mailu-antivirus
+    restart: unless-stopped
+    profiles:
+      - antivirus
+    env_file:
+      - ${MAILU_ENV_FILE:-deploy/mailu.env}
+    volumes:
+      - "${ROOT:-/opt/mailu}/filter:/data"
+
+networks:
+  default:
+    name: mailu
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "${SUBNET:-192.168.203.0/24}"

@@ -94,6 +94,17 @@ See [`docs/deploy-vps-mailu.md`](docs/deploy-vps-mailu.md) for the one-VPS deplo
 
 API-key sending and inbound message APIs are documented in [`docs/api.md`](docs/api.md). In development, OpenAPI is also exposed by the server at [`http://localhost:5005/docs`](http://localhost:5005/docs).
 
+To bootstrap the Mailu engine on a VPS:
+
+```bash
+DOMAIN=example.com \
+MAIL_HOST=mail.example.com \
+MAILU_ADMIN_PASSWORD='strong password' \
+./scripts/mailu-setup.sh
+```
+
+The script generates `deploy/mailu.env`, starts [`docker.maulu-setup.yml`](docker.maulu-setup.yml), and prints the Mail Kit server env values for SMTP, IMAP, and Mailu API integration.
+
 After deploying to a VPS, run the readiness checker:
 
 ```bash
